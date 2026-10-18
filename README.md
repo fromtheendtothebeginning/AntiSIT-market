@@ -59,6 +59,11 @@ dart run tool/market_tool.dart check # 自检（CI 也会跑，不过别等 CI�
 CI 会自动校验：清单字段、zip 与源是否一致、有没有危险路径、包体积、目录是否最新、签名是否有效，
 还有下面两条「内置页里必然出问题」的源码体检：
 
+> 提 PR 时 CI 会报几条「market.json 里没有它 / 目录与源不一致」——**那是正常的**：
+> 目录只有维护者能签，你的 PR 只需要带 `ext/<id>/` 与 `dist/<id>/<版本>.zip`。
+> 维护者合并后会跑 `dart run tool/market_tool.dart all` 重新生成并签名，这几条就消失了。
+> （别自己动 `market.json`：改过又签不了名，整个目录会验签失败。）
+
 * **不能用 `localStorage` / `sessionStorage` / `document.cookie`** —— 拓展页是 App 用
   `loadHtmlString` 打开的，来源是 opaque origin，读这些 API 直接抛 SecurityError。
   要存数据就走 `antiSIT.call("storage.get"/"storage.set")`（并在 `ext.json` 里声明 `storage`）。
@@ -69,6 +74,53 @@ CI 会自动校验：清单字段、zip 与源是否一致、有没有危险路�
 > 投稿请只收**许可明确**的代码：自己写，或者改编 MIT / Apache-2.0 这类允许再分发的项目，
 > 并在包里附 `LICENSE`（许可全文）与 `NOTICE.md`（来源链接、锁定的 commit、你改了什么）。
 > 没有 LICENSE、或声明「保留所有权利」的仓库不要直接搬。
+
+## 自己发一个源（不用 PR，也不用等收录）
+
+不想等官方目录收录、或者想自己控制更新节奏？把插件放到**你自己的仓库**里就行——
+市场支持「添加第三方源」，用户粘贴你的 `所有者/仓库` 就能装。工具、格式、权限、lint
+全都跟官方目录同一套，你只是自己拿着签名私钥。
+
+```bash
+# 1. 建一个空仓库，把这些拷进去（工具、格式定义、以及「别提交私钥」的 .gitignore）
+#    tool/  lib/  pubspec.yaml  pubspec.lock
+#    .gitattributes（锁 LF，必须）  .gitignore（挡住 keys/market.key）
+#    可选：test/ + .github/（拷了的话你自己的仓库也带同一道校验，push 就跑）
+dart pub get
+
+# 2. 照官方目录一样的格式写你的插件：ext/<你的 id>/{ext.json,index.html,…}
+#    id 别用 sit. 开头（那是官方目录的），用自己的前缀，例如 someone.tool
+
+# 3. 一条龙：打包 → 生成目录（内嵌你的公钥）→ 签名 → 自检，并打印指纹
+dart run tool/market_tool.dart publish
+```
+
+`publish` 第一次会顺手给你生成密钥对（`keys/market.key` 私钥、`keys/market.pub` 公钥），
+然后打印**公钥指纹**与一段可以直接发出去的文案。把整个目录推到 GitHub（分支叫 `main`
+最省事），再把这条发出去：
+
+```
+AntiSIT 插件源：<你的 GitHub 用户>/<仓库名>
+公钥指纹：XXXX-XXXX-XXXX
+```
+
+别人在市场页「插件源 → 添加第三方源」里粘贴 `你的用户/仓库名`，App 会显示**同一串指纹**，
+核对一致才添加。以后改内容：**升 `ext.json` 里的 version**，再跑一次 `publish` + push。
+
+几条要知道的：
+
+* **格式就是官方目录那份**（同一套 `market.json` + `.sig`，只是内嵌了你的公钥）——
+  权限声明、`network` 禁网、`LICENSE`/`NOTICE` 随包、localStorage 与外链那两条体检，一样都跑。
+* **换行符必须是 LF**：仓库靠 `.gitattributes` 锁 LF；`pack`/`check` 现在会直接说
+  「文件里是 CRLF」，不会让它伪装成「产物与源对不上」。
+* `keys/market.pub` **要提交**（`check` 拿它验签），`keys/market.key` 绝不能提交
+  （拷过来的 `.gitignore` 已经挡住了）。
+* **id 是全局唯一的认领**：同一个 id 只能由一个源管。已经装了官方某个拓展，第三方源拿同名
+  id 想顶替会被拒——这挡住了「用别人的 id 悄悄换掉已装内容」。
+* **信任模型**：目录里的公钥是**你自报**的，App 只能保证「加进来之后不被换」（换钥匙会被自动
+  停用并把新旧指纹摆给用户看）。第一次是不是你，只能靠用户拿指纹和你的 README 对照——
+  请把指纹写进你的 README。
+* 第三方源不受官方审核约束，**内容好坏由作者和用户自己负责**（App 里会明确标成「第三方源」）。
 
 ## `ext.json` 字段
 

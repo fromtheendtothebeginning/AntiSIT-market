@@ -278,4 +278,55 @@ antiSIT.call("storage.get", {key: "n"});
           isEmpty);
     });
   });
+
+  group('作者自己发的源', () {
+    test('目录可以内嵌公钥；官方目录不带（公钥内置在 App 里）', () async {
+      final key = await generateKeyPair('k1');
+      final withKey = buildCatalogJson(
+          keyId: 'k1',
+          publicKey: key.publicKey,
+          entries: [CatalogEntry(manifest: parseOk(manifestJson()))]);
+      expect(withKey, contains('"publicKey"'));
+      expect(catalogPublicKey(jsonDecode(withKey)), key.publicKey);
+
+      final without = buildCatalogJson(
+          keyId: 'k1', entries: [CatalogEntry(manifest: parseOk(manifestJson()))]);
+      expect(without, isNot(contains('publicKey')));
+    });
+
+    test('指纹格式：前 12 位十六进制按 4 位分组（App 侧算的是同一串）', () async {
+      final key = await generateKeyPair('k1');
+      expect(keyFingerprint(key.publicKey),
+          matches(RegExp(r'^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$')));
+      // 同一把钥匙每次算出来一样
+      expect(keyFingerprint(key.publicKey), keyFingerprint(key.publicKey));
+      // 不同钥匙不同指纹
+      final other = await generateKeyPair('k1');
+      expect(keyFingerprint(other.publicKey), isNot(keyFingerprint(key.publicKey)));
+    });
+  });
+
+  group('换行符检查', () {
+    // 用 fromCharCodes 拼，免得源码里真出现 CR/LF 把字符串截断
+    final crlf = String.fromCharCodes(const [13, 10]);
+    final lf = String.fromCharCodes(const [10]);
+
+    test('CRLF → 报出来（否则会伪装成「产物与源对不上」，很难查）', () {
+      final bad = lintLineEndings({
+        'ext.json': utf8.encode('{${crlf}  "id": "x"${crlf}}${crlf}'),
+      });
+      expect(bad, hasLength(1));
+      expect(bad.single, contains('CRLF'));
+      expect(bad.single, contains('LF'));
+
+      expect(
+          lintLineEndings({'ext.json': utf8.encode('{${lf}  "id": "x"${lf}}${lf}')}),
+          isEmpty);
+    });
+
+    test('二进制文件不查（zip/图片里的字节不算换行）', () {
+      expect(lintLineEndings({'dist/x/1.0.0.zip': [1, 13, 10, 2]}), isEmpty);
+      expect(lintLineEndings({'icon.png': [13, 10]}), isEmpty);
+    });
+  });
 }

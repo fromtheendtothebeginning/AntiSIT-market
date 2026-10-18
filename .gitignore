@@ -6,3 +6,6 @@ build/
 *.iml
 .idea/
 .vscode/
+
+# 本机验证用：拿工具现造一个「作者的源」，供 App 侧跨仓库联调测试读取
+.verify-author-source/

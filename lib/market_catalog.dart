@@ -7,6 +7,8 @@ library;
 
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
+
 import 'market_manifest.dart';
 
 /// 目录里的一条：清单 + 打包产物信息。
@@ -55,14 +57,20 @@ class CatalogEntry {
 const int kCatalogSchema = 1;
 
 /// 生成 `market.json` 的字节（含末尾换行）。
+///
+/// [publicKey] 只在「作者自己发的源」里写：这种目录没有内置公钥可用，得自报家门
+/// （App 首次添加该源时把这个公钥连同指纹拿给用户确认，之后固定住）。
+/// 官方目录不写——它的公钥内置在 App 里，写进来反而给了「连公钥一起换掉」的伪造空间。
 String buildCatalogJson({
   required String keyId,
   required List<CatalogEntry> entries,
+  String publicKey = '',
 }) {
   final sorted = [...entries]..sort((a, b) => a.id.compareTo(b.id));
   final map = <String, Object?>{
     'schema': kCatalogSchema,
     'keyId': keyId,
+    if (publicKey.isNotEmpty) 'publicKey': publicKey,
     'extensions': [for (final e in sorted) e.toJson()],
   };
   return '${const JsonEncoder.withIndent('  ').convert(map)}\n';
@@ -95,4 +103,21 @@ List<CatalogEntry> parseCatalogEntries(Object? raw) {
 String catalogKeyId(Object? raw) {
   if (raw is! Map) throw const FormatException('目录要是一个 JSON 对象');
   return '${raw['keyId'] ?? ''}';
+}
+
+/// 目录里自报的公钥（只有作者自己发的源会写；官方目录返回空串）。
+String catalogPublicKey(Object? raw) {
+  if (raw is! Map) throw const FormatException('目录要是一个 JSON 对象');
+  return '${raw['publicKey'] ?? ''}'.trim();
+}
+
+/// 公钥指纹：`sha256(公钥字节)` 的前 12 位十六进制，按 4 位一组（`A1B2-C3D4-E5F6`）。
+///
+/// App 侧算的是同一套（`plugin_ext/market/market_sources.dart`），作者把这个指纹
+/// 写在自己的 README / 分享文案里，用户添加源时核对的就是它。
+String keyFingerprint(String publicKeyBase64) {
+  final bytes = base64Decode(publicKeyBase64);
+  final hex = sha256.convert(bytes).toString().toUpperCase();
+  final head = hex.substring(0, 12);
+  return '${head.substring(0, 4)}-${head.substring(4, 8)}-${head.substring(8, 12)}';
 }

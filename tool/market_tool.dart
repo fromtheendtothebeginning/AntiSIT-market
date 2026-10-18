@@ -47,6 +47,8 @@ Future<void> main(List<String> args) async {
         print('\n目录已更新：market.json + market.json.sig（记得提交）');
       case 'check':
         await _check(root);
+      case 'publish':
+        await _publish(root);
       case 'help':
       default:
         _help();
@@ -63,12 +65,14 @@ Future<void> main(List<String> args) async {
 void _help() => print('''
 AntiSIT 插件市场工具
 
-  keygen [--key-id k1] [--force]   生成密钥对（维护者本机，只跑一次）
+  keygen [--key-id k1] [--force]   生成密钥对（只跑一次；私钥别提交）
   pack                             打包 ext/** → dist/**
-  build                            生成 market.json
+  build [--embed-public-key]       生成 market.json
   sign                             签名 → market.json.sig
-  all                              pack + build + sign
+  all                              pack + build + sign（官方目录用这个）
   check                            自检 + 验签（CI 用）
+  publish                          作者一条龙：pack + 内嵌公钥 + build + sign，
+                                   并打印指纹与分享文案（在自己仓库里发一个源用这个）
 
 目录约定：一条拓展 = ext/<id>/ 目录 + 里面的 ext.json（见 README.md）。
 ''');
@@ -89,7 +93,7 @@ String _distRoot(String root) => '$root/dist';
 
 // ==================== keygen ====================
 
-Future<void> _keygen(String root, List<String> args) async {
+Future<void> _keygen(String root, List<String> args, {bool forAuthor = false}) async {
   final keyId = _argValue(args, '--key-id') ?? 'k1';
   final force = args.contains('--force');
   final keyPath = '$root/keys/market.key';
@@ -110,9 +114,15 @@ Future<void> _keygen(String root, List<String> args) async {
   writePubKeys(pubPath, keys);
 
   print('✓ 私钥：$keyPath（**已在 .gitignore 里，别提交、别传服务器**）');
-  print('✓ 公钥：$pubPath');
-  print('\n把这一段贴进 App（packages/plugin_ext/lib/market/market_source.dart）：\n');
-  print(dartPubKeySnippet(keys));
+  print('✓ 公钥：$pubPath（指纹 ${keyFingerprint(key.publicKey)}）');
+  if (!forAuthor) print('\n把这一段贴进 App（packages/plugin_ext/lib/market/market_source.dart）：\n');
+  if (forAuthor) {
+    print('把这个指纹写进你的 README（用户在「添加源」时看到的是同一串）:');
+    print('  AntiSIT 插件源 <你的 GitHub 用户>/<仓库名>，公钥指纹 '
+        '${keyFingerprint(key.publicKey)}');
+  } else {
+    print(dartPubKeySnippet(keys));
+  }
 }
 
 String? _argValue(List<String> args, String name) {
@@ -165,8 +175,8 @@ void _pack(String root) {
     if (entryHtmlOf(files.keys) == null) {
       throw FormatException('${m.id} 的压缩包里没找到 html（根目录放一个 index.html 最省事）');
     }
-    // 体检：内置页里用不了的东西（localStorage / 没声明 network 却引外链）
-    final lint = lintBundle(files, permissions: m.permissions);
+    // 体检：内置页里用不了的东西（localStorage / 没声明 network 却引外链）+ 换行符
+    final lint = [...lintBundle(files, permissions: m.permissions), ...lintLineEndings(files)];
     if (lint.isNotEmpty) {
       throw FormatException('${m.id} 有问题：\n  - ${lint.join('\n  - ')}');
     }
@@ -206,6 +216,15 @@ String _keyIdFor(String root) {
   throw StateError('认不出该用哪把密钥签名：跑一次 keygen，或让 market.json 里带上 keyId');
 }
 
+/// 取某个 keyId 的公钥（作者自建的源要把公钥写进目录，用户添加源时核对指纹）。
+String _publicKeyFor(String root, String keyId) {
+  final key = readPubKeys('$root/keys/market.pub')[keyId];
+  if (key == null || key.isEmpty) {
+    throw StateError('keys/market.pub 里没有「$keyId」的公钥：先跑 keygen');
+  }
+  return key;
+}
+
 List<CatalogEntry> _entries(String root, {required bool requireArtifacts}) {
   final out = <CatalogEntry>[];
   for (final s in _scan(root)) {
@@ -231,8 +250,13 @@ List<CatalogEntry> _entries(String root, {required bool requireArtifacts}) {
   return out;
 }
 
-void _build(String root) {
-  final json = buildCatalogJson(keyId: _keyIdFor(root), entries: _entries(root, requireArtifacts: true));
+void _build(String root, {bool embedPublicKey = false}) {
+  final keyId = _keyIdFor(root);
+  final publicKey = embedPublicKey ? _publicKeyFor(root, keyId) : '';
+  final json = buildCatalogJson(
+      keyId: keyId,
+      publicKey: publicKey,
+      entries: _entries(root, requireArtifacts: true));
   File('$root/market.json').writeAsStringSync(json);
   print('✓ market.json（${_entries(root, requireArtifacts: true).length} 条）');
 }
@@ -252,6 +276,48 @@ Future<void> _sign(String root) async {
   final sig = await signBase64(bytes, key);
   File('$root/market.json.sig').writeAsStringSync('$sig\n');
   print('✓ market.json.sig（keyId=${key.keyId}）');
+}
+
+// ==================== publish（作者在自己仓库里发一个源）====================
+
+/// 作者一条龙：把 ext/<id>/ 打包、写成一份**只有一个条目的目录**并用自己的私钥签名，
+/// 目录里内嵌自己的公钥（App 添加这个源时把指纹拿给用户确认，之后固定住）。
+Future<void> _publish(String root) async {
+  final keyFile = File('$root/keys/market.key');
+  if (!keyFile.existsSync()) {
+    print('· 这个仓库还没有密钥，先给你生成一对（私钥在 keys/market.key，**别提交、别丢**）');
+    await _keygen(root, const [], forAuthor: true);
+  }
+  final key = MarketKeyPair.fromJson(readJsonFile('$root/keys/market.key'));
+  final pub = readPubKeys('$root/keys/market.pub')[key.keyId];
+  if (pub == null || pub.isEmpty) {
+    throw StateError('keys/market.pub 里没有「${key.keyId}」的公钥：先跑 keygen');
+  }
+
+  _pack(root);
+  _build(root, embedPublicKey: true);
+  await _sign(root);
+  await _check(root);
+
+  final fp = keyFingerprint(pub);
+  final ids = [for (final s in _scan(root)) '${s.id} v${s.manifest.version.isEmpty ? '-' : s.manifest.version}'];
+  print('''
+✓ 发布物已就绪：market.json + market.json.sig（内嵌你的公钥）
+
+  本次包含：${ids.isEmpty ? '（没有条目）' : ids.join('、')}
+  公钥指纹：$fp
+
+接下来：
+  1. 把整个目录提交并推到你的 GitHub 仓库（分支叫 main 最省事）
+  2. 把这条发给别人（他们要在市场页「添加源」里粘贴）：
+
+       AntiSIT 插件源：<你的 GitHub 用户>/<仓库名>
+       公钥指纹：$fp（添加时会显示，核对一致再确认）
+
+  3. 目录地址（App 会自动拼）：https://cdn.jsdelivr.net/gh/<用户>/<仓库>@main/market.json
+     别人添加后就出现在市场里；以后改内容要**升 ext.json 的 version** 再跑一次 publish，
+     更新才会被识别（同一版本号只改了内容也算有更新，但报版本号更清楚）。
+''');
 }
 
 // ==================== check ====================
@@ -310,7 +376,8 @@ Future<void> _check(String root) async {
     try {
       final fresh = readZip(packDirectory(s.dir));
       if (entryHtmlOf(fresh.keys) == null) problems.add('${m.id}：压缩包里没有 html 入口');
-      for (final p in lintBundle(fresh, permissions: m.permissions)) {
+      final lint = [...lintBundle(fresh, permissions: m.permissions), ...lintLineEndings(fresh)];
+      for (final p in lint) {
         problems.add('${m.id}：$p');
       }
     } catch (e) {
@@ -342,8 +409,10 @@ Future<void> _check(String root) async {
   // 3) 目录必须是最新重算结果的字节（保证验签对象可复现）
   if (catalogFile.existsSync()) {
     try {
+      final committed = readJsonFile(catalogFile.path);
       final fresh = buildCatalogJson(
-          keyId: catalogKeyId(readJsonFile(catalogFile.path)),
+          keyId: catalogKeyId(committed),
+          publicKey: catalogPublicKey(committed),
           entries: _entries(root, requireArtifacts: true));
       if (fresh != catalogFile.readAsStringSync()) {
         problems.add('market.json 与 ext/** 重算结果不一致（跑 build）');

@@ -95,3 +95,38 @@ List<String> lintBundle(Map<String, List<int>> files, {required List<String> per
 }
 
 String _decode(List<int> bytes) => utf8.decode(bytes, allowMalformed: true);
+
+/// 换行符检查——单列一条，因为它报错的样子最会骗人。
+///
+/// 本仓库靠 `.gitattributes` 把签出锁成 LF，而 `market.json` 的签名与每个 zip 的
+/// sha256 都是**按字节**算的。源文件里混进 CRLF，本地打出来的 zip 就与 CI 重打包的
+/// 对不上，报出来的却是「改了网页没重新打包」——Windows 上 `core.autocrlf=true` 加上
+/// 从别处拷来的文件最容易撞上（2048 就这么栽过一次）。
+List<String> lintLineEndings(Map<String, List<int>> files) => [
+      for (final e in files.entries)
+        if (_isTextFile(e.key) && _hasCrlf(e.value))
+          '${e.key}：文件里是 CRLF 换行。本仓库锁 LF（sha256 与签名都按字节算），'
+              '请把换行转成 LF 再打包（VS Code 右下角 CRLF → LF；提交那侧有 '
+              '.gitattributes 兜住，但**打包读的是你磁盘上的字节**）',
+    ];
+
+/// 非二进制文件（换行检查管得比代码检查宽：ext.json、说明文件也会进 zip）。
+bool _isTextFile(String path) {
+  final lower = path.toLowerCase();
+  return !lower.endsWith('.zip') &&
+      !lower.endsWith('.png') &&
+      !lower.endsWith('.jpg') &&
+      !lower.endsWith('.jpeg') &&
+      !lower.endsWith('.gif') &&
+      !lower.endsWith('.webp') &&
+      !lower.endsWith('.ico') &&
+      !lower.endsWith('.woff') &&
+      !lower.endsWith('.woff2');
+}
+
+bool _hasCrlf(List<int> bytes) {
+  for (var i = 1; i < bytes.length; i++) {
+    if (bytes[i - 1] == 13 && bytes[i] == 10) return true;
+  }
+  return false;
+}
