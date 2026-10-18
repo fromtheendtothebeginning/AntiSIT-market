@@ -1,0 +1,13 @@
+{
+  "id": "你的拓展 id（小写，点分，必须与本目录名一致，例：sit.my-tool）",
+  "name": "拓展名称（≤20 字）",
+  "desc": "一句话简介（≤60 字，显示在卡片名称下方）",
+  "author": "你的名字（≤24 字）",
+  "category": "工具",
+  "icon": "🛠",
+  "type": "bundle",
+  "version": "1.0.0",
+  "permissions": ["storage"],
+  "minAppVersion": "1.16.0",
+  "homepage": "https://github.com/你的仓库"
+}

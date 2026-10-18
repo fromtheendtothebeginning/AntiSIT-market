@@ -1,0 +1,13 @@
+{
+  "id": "sit.demo-counter",
+  "name": "记一笔",
+  "desc": "数数小工具：点一下记一次，卡片简介跟着变",
+  "author": "AntiSIT",
+  "category": "工具",
+  "icon": "🧮",
+  "type": "bundle",
+  "version": "1.0.0",
+  "permissions": ["storage"],
+  "minAppVersion": "1.16.0",
+  "homepage": "https://github.com/fromtheendtothebeginning/AntiSIT-market"
+}

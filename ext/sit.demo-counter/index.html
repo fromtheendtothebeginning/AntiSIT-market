@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>记一笔</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <p class="hint">点一下按钮，记一笔。</p>
+    <div class="count" id="count">0</div>
+    <p class="meta" id="meta">……</p>
+    <div class="row">
+      <button id="add" class="primary">记一笔</button>
+      <button id="reset">清零</button>
+    </div>
+    <p class="tips">
+      数据存在本机（这条拓展自己的存储里），换拓展不会互相看到；卡片简介会跟着计数走。
+    </p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

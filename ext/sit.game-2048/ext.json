@@ -1,0 +1,13 @@
+{
+  "id": "sit.game-2048",
+  "name": "2048",
+  "desc": "经典合数字：滑动合并相同数字，凑出 2048；最高分存在本机",
+  "author": "Gabriele Cirulli 原作",
+  "category": "娱乐",
+  "icon": "🔢",
+  "type": "bundle",
+  "version": "1.0.0",
+  "permissions": ["storage"],
+  "minAppVersion": "1.16.0",
+  "homepage": "https://github.com/gabrielecirulli/2048"
+}

@@ -1,0 +1,26 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: 依赖
+        run: dart pub get
+
+      - name: 工具单测
+        run: dart test
+
+      # 只拿公钥验签：CI 被攻破也伪造不出目录
+      - name: 校验打包产物 / 目录 / 签名
+        run: dart run tool/market_tool.dart check

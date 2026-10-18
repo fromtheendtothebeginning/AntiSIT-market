@@ -1,0 +1,12 @@
+# 这个仓库是「按字节」自洽的：market.json 的签名、每个 zip 的 sha256 都对着具体字节。
+# 所以**签出时绝不能做换行转换**——Windows 上默认 core.autocrlf=true 会把文本文件写成 CRLF，
+# 于是 market.json 变了（验签失败）、ext/** 重打包出来的 zip 也变了（sha256 对不上）。
+# 统一锁成 LF：无论谁在什么系统 clone，拿到的字节都与提交时一致。
+* text=auto eol=lf
+
+# 产物明确按二进制处理，别让 git 去嗅探
+*.zip binary
+*.png binary
+*.ico binary
+*.woff binary
+*.woff2 binary

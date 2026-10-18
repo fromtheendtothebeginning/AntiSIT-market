@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "keyId": "k1",
+  "extensions": [
+    {
+      "id": "sit.demo-counter",
+      "name": "记一笔",
+      "desc": "数数小工具：点一下记一次，卡片简介跟着变",
+      "author": "AntiSIT",
+      "category": "工具",
+      "icon": "🧮",
+      "type": "bundle",
+      "version": "1.0.0",
+      "homepage": "https://github.com/fromtheendtothebeginning/AntiSIT-market",
+      "zip": "dist/sit.demo-counter/1.0.0.zip",
+      "sha256": "2d2593065fe499e0ef821e0e37c2faeccc86b65ce0550969a9b693d3cef2a4a2",
+      "size": 3101,
+      "permissions": [
+        "storage"
+      ],
+      "minAppVersion": "1.16.0"
+    },
+    {
+      "id": "sit.game-2048",
+      "name": "2048",
+      "desc": "经典合数字：滑动合并相同数字，凑出 2048；最高分存在本机",
+      "author": "Gabriele Cirulli 原作",
+      "category": "娱乐",
+      "icon": "🔢",
+      "type": "bundle",
+      "version": "1.0.0",
+      "homepage": "https://github.com/gabrielecirulli/2048",
+      "zip": "dist/sit.game-2048/1.0.0.zip",
+      "sha256": "cd819306c959c82125a1f12760dc0c2a32e4290dc094af15404ab0ee02ee7b90",
+      "size": 17858,
+      "permissions": [
+        "storage"
+      ],
+      "minAppVersion": "1.16.0"
+    },
+    {
+      "id": "sit.game-minesweeper",
+      "name": "扫雷",
+      "desc": "经典扫雷：10×10 二十颗雷，点开格子、标记地雷，清完就赢",
+      "author": "Ania Kubow 原作",
+      "category": "娱乐",
+      "icon": "💣",
+      "type": "bundle",
+      "version": "1.0.0",
+      "homepage": "https://github.com/kubowania/minesweeper",
+      "zip": "dist/sit.game-minesweeper/1.0.0.zip",
+      "sha256": "624be67a760a21c4a698dc4912c3e2dad6accdb5830e67a4e2da5f49c499a43d",
+      "size": 8491,
+      "permissions": [],
+      "minAppVersion": "1.16.0"
+    }
+  ]
+}

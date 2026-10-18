@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <title>扫雷</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="bar">
+      <span>剩余 <b id="flags-left">20</b></span>
+      <span>用时 <b id="time">0</b> 秒</span>
+    </div>
+
+    <div class="grid"></div>
+
+    <div class="bar">
+      <button id="flag-mode" type="button">🚩 标记</button>
+      <button id="restart" type="button">重来一局</button>
+    </div>
+
+    <div id="result"></div>
+    <p class="tips">点开格子：数字表示周围有几颗雷。插旗用「标记」模式或长按格子（电脑上右键也行）。</p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

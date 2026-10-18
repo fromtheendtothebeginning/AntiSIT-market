@@ -1,0 +1,8 @@
+# 签名私钥：只在本机，绝不提交（公钥 keys/market.pub 才进仓库）
+keys/market.key
+
+.dart_tool/
+build/
+*.iml
+.idea/
+.vscode/
