@@ -31,7 +31,6 @@ App 内置公钥，**验签通过才认目录**，每个 zip 还要对得上目�
 
 | 插件 | 是什么 | 上游 / 许可 |
 |---|---|---|
-| [`sit.demo-counter`](ext/sit.demo-counter) | 「记一笔」计数器：最小的可用例子（用 `storage` 存数、用 `card.setDesc` 让卡片简介跟着数据走） | AntiSIT 自写 |
 | [`sit.game-2048`](ext/sit.game-2048) | 2048：滑动合数字、最高分存本机 | [gabrielecirulli/2048](https://github.com/gabrielecirulli/2048) · MIT |
 | [`sit.game-minesweeper`](ext/sit.game-minesweeper) | 扫雷：10×10 二十颗雷，标记模式 / 长按插旗，**不声明任何权限**（不存数据不联网） | [kubowania/minesweeper](https://github.com/kubowania/minesweeper) · MIT |
 
@@ -174,9 +173,8 @@ antiSIT.post('toast', {text: '已保存'});          // 不需要返回值时用
 
 约定：
 
-* 垫片在**页面加载完成后**才注入，同步脚本里 `antiSIT` 可能还不存在——等它（见
-  [`ext/sit.demo-counter/app.js`](ext/sit.demo-counter/app.js) 里的 `waitForBridge`），
-  或者干脆不用它；
+* 垫片在**页面加载完成后**才注入，同步脚本里 `antiSIT` 可能还不存在——轮询等它出现
+  （`while (!window.antiSIT) await new Promise(r => setTimeout(r, 50))`），或者干脆不用它；
 * 未知方法 / 参数不对会 **Promise reject**，消息带原因，方便调试；
 * **json 包必须是自包含的**：App 会把入口页同目录的 `<link href=x.css>` 与
   `<script src=x.js>` 内联进 html（不依赖 `file://`），所以图片 / 字体这类相对路径资源

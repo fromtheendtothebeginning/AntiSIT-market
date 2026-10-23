@@ -47,7 +47,7 @@ class ExtManifest {
     required this.minAppVersion,
   });
 
-  /// 稳定 id：`sit.demo-counter` 这种小写点分串，必须与 `ext/<id>/` 目录名一致。
+  /// 稳定 id：`sit.my-tool` 这种小写点分串，必须与 `ext/<id>/` 目录名一致。
   final String id;
   final String name;
   final String desc;

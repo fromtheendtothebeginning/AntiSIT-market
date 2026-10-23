@@ -3,24 +3,6 @@
   "keyId": "k1",
   "extensions": [
     {
-      "id": "sit.demo-counter",
-      "name": "记一笔",
-      "desc": "数数小工具：点一下记一次，卡片简介跟着变",
-      "author": "AntiSIT",
-      "category": "工具",
-      "icon": "🧮",
-      "type": "bundle",
-      "version": "1.0.0",
-      "homepage": "https://github.com/fromtheendtothebeginning/AntiSIT-market",
-      "zip": "dist/sit.demo-counter/1.0.0.zip",
-      "sha256": "2d2593065fe499e0ef821e0e37c2faeccc86b65ce0550969a9b693d3cef2a4a2",
-      "size": 3101,
-      "permissions": [
-        "storage"
-      ],
-      "minAppVersion": "1.16.0"
-    },
-    {
       "id": "sit.game-2048",
       "name": "2048",
       "desc": "经典合数字：滑动合并相同数字，凑出 2048；最高分存在本机",
