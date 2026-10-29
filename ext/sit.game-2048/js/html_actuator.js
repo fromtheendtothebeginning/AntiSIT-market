@@ -22,6 +22,11 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
       });
     });
 
+    // 撤回：这一步新长出来 / 合并出来的格子，原地缩回去（反向播放 appear / pop）
+    (metadata.ghosts || []).forEach(function (ghost) {
+      self.addGhostTile(ghost);
+    });
+
     self.updateScore(metadata.score);
     self.updateBestScore(metadata.bestScore);
     self.updateUndo(metadata.canUndo);
@@ -94,6 +99,26 @@ HTMLActuator.prototype.addTile = function (tile) {
 
 HTMLActuator.prototype.applyClasses = function (element, classes) {
   element.setAttribute("class", classes.join(" "));
+};
+
+// 撤回专用：一个不参与棋盘状态、只在原地缩小的「残影」格子
+HTMLActuator.prototype.addGhostTile = function (tile) {
+  var wrapper = document.createElement("div");
+  var inner   = document.createElement("div");
+
+  this.applyClasses(wrapper, [
+    "tile", "tile-" + tile.value, this.positionClass(tile), "tile-vanish"
+  ]);
+  inner.classList.add("tile-inner");
+  inner.textContent = tile.value;
+  wrapper.appendChild(inner);
+
+  this.tileContainer.appendChild(wrapper);
+
+  // 动画放完就摘掉（下一次 actuate 本来也会清空，这里避免残影一直挂在盘上）
+  window.setTimeout(function () {
+    if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+  }, 200);
 };
 
 HTMLActuator.prototype.normalizePosition = function (position) {

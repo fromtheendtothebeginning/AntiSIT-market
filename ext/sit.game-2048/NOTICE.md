@@ -24,11 +24,14 @@
    （`js/keyboard_input_manager.js` 里 touchend 的手势识别），没有改动。
 5. `index.html` 补了 `<meta name="viewport">`、`lang="zh-CN"`；底部的「官方版声明」换成
    指向上游仓库的署名（点开由系统浏览器打开，见 `docs/extensions.md` 的导航约定）。
-6. **撤回**：`game_manager.js` 在每次有效移动前压一份棋盘快照（`serialize()`，最多 20 步，
-   只在内存里；新开一局清空），`undo-button` 弹栈恢复棋盘、分数与胜负状态，并收掉
-   「游戏结束 / 你赢了」浮层——所以踩死之后也能撤回。`html_actuator.js` 按有无历史
-   给按钮压灰/恢复，`keyboard_input_manager.js` 绑了按钮和 Z / Ctrl+Z 快捷键，
-   `index.html` / `style/main.css` 加了按钮与样式。
+6. **撤回**：`game_manager.js` 在每次有效移动后记一份「反向帧」（走之前的棋盘快照 +
+   每个旧格子这一步从哪滑到哪 + 这一步新长出来 / 合并出来的格子），最多 20 步，只在内存里；
+   新开一局清空。撤回时把棋盘恢复成快照，并给每个旧格子设 `previousPosition` = 这一步结束时的
+   位置——渲染器会先画在结束位置，再靠原有的 100ms transform 过渡滑回原位，等于把正向滑动
+   倒放一遍；合并出来的大格子和随机新格子则以 `tile-vanish` 原地缩小消失（正向 appear / pop
+   的倒放）。`undo-button` 恢复分数、胜负状态并收掉「游戏结束 / 你赢了」浮层——踩死之后也能撤回。
+   `html_actuator.js` 负责倒放与按钮压灰，`keyboard_input_manager.js` 绑了按钮和 Z / Ctrl+Z
+   快捷键，`index.html` / `style/main.css` 加了按钮、样式与 vanish 动画。
 
 ## 未改动
 

@@ -10,11 +10,11 @@
       "category": "娱乐",
       "icon": "🔢",
       "type": "bundle",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "homepage": "https://github.com/gabrielecirulli/2048",
-      "zip": "dist/sit.game-2048/1.1.0.zip",
-      "sha256": "24e1b8f7cf3cd7eba61e268d3563b36177974f85798e37d6b0eaef75ca0d49a0",
-      "size": 19315,
+      "zip": "dist/sit.game-2048/1.1.1.zip",
+      "sha256": "c1fe4d7ca713c1b225bee8be2b78a250777137353f730e5c7b85c88dd75b2a15",
+      "size": 20910,
       "permissions": [
         "storage"
       ],

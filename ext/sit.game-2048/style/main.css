@@ -873,3 +873,33 @@ hr {
     padding: 0 4px;
     box-sizing: border-box; }
 }
+
+/* ==========================================================================
+   AntiSIT 拓展改动：撤回时把正向动画倒着放——
+   滑动格由 undo 逻辑设置 previousPosition，走的是上面那套 100ms transform 过渡；
+   这一步新长出来 / 合并出来的格子则用下面的 vanish 原地缩回去。
+   ========================================================================== */
+@-webkit-keyframes vanish {
+  0% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    opacity: 1; }
+
+  100% {
+    -webkit-transform: scale(0);
+    transform: scale(0);
+    opacity: 0; } }
+@keyframes vanish {
+  0% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    opacity: 1; }
+
+  100% {
+    -webkit-transform: scale(0);
+    transform: scale(0);
+    opacity: 0; } }
+
+.tile-vanish .tile-inner {
+  -webkit-animation: vanish 160ms ease-in forwards;
+  animation: vanish 160ms ease-in forwards; }

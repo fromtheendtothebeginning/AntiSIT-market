@@ -30,13 +30,26 @@ GameManager.prototype.keepPlaying = function () {
   this.actuator.continueGame(); // Clear the game won/lost message
 };
 
-// Undo the last move: restore the snapshot taken before it
+// Undo the last move: restore the snapshot, with the move's animation played backwards
 GameManager.prototype.undo = function () {
   if (!this.history.length) return;
 
-  var state = this.history.pop();
+  var frame = this.history.pop();
+  var state = frame.state;
+  var from  = {};
 
-  this.grid        = new Grid(state.grid.size, state.grid.cells);
+  frame.moves.forEach(function (move) {
+    from[move.from.x + ',' + move.from.y] = move.to;
+  });
+
+  this.grid = new Grid(state.grid.size, state.grid.cells);
+  this.grid.eachCell(function (x, y, tile) {
+    if (!tile) return;
+    var at = from[x + ',' + y];
+    // 先摆在这一步结束时的位置，下一帧再切回原位：CSS 过渡会把正向滑动倒着放一遍
+    if (at) tile.previousPosition = { x: at.x, y: at.y };
+  });
+
   this.score       = state.score;
   this.over        = state.over;
   this.won         = state.won;
@@ -44,7 +57,8 @@ GameManager.prototype.undo = function () {
 
   // 撤回到「游戏结束 / 你赢了」之前，把浮层收掉
   this.actuator.continueGame();
-  this.actuate();
+  // ghosts：这一步新长出来 / 合并出来的格子，让它们在原地缩回去
+  this.actuate(frame.ghosts);
 };
 
 // Return true if the game is lost, or has won and the user hasn't kept playing
@@ -100,7 +114,7 @@ GameManager.prototype.addRandomTile = function () {
 };
 
 // Sends the updated grid to the actuator
-GameManager.prototype.actuate = function () {
+GameManager.prototype.actuate = function (ghosts) {
   if (this.storageManager.getBestScore() < this.score) {
     this.storageManager.setBestScore(this.score);
   }
@@ -118,7 +132,8 @@ GameManager.prototype.actuate = function () {
     won:        this.won,
     bestScore:  this.storageManager.getBestScore(),
     terminated: this.isGameTerminated(),
-    canUndo:    this.history.length > 0
+    canUndo:    this.history.length > 0,
+    ghosts:     ghosts || []
   });
 
 };
@@ -132,6 +147,34 @@ GameManager.prototype.serialize = function () {
     won:         this.won,
     keepPlaying: this.keepPlaying
   };
+};
+
+// 撤回用的「反向帧」：这一步每个旧格子从哪滑到哪，以及这一步新出现 / 合并出来的格子。
+// 必须在 addRandomTile() 之后调用（那时新格子已经在盘上，previousPosition 为 null）。
+GameManager.prototype.undoFrame = function (state) {
+  var moves  = [];
+  var ghosts = [];
+
+  this.grid.eachCell(function (x, y, tile) {
+    if (!tile) return;
+
+    if (tile.mergedFrom) {
+      // 合并出来的大格子：撤回时原地缩回去；两个来源格从合并点滑回原位
+      ghosts.push({ x: x, y: y, value: tile.value });
+      tile.mergedFrom.forEach(function (source) {
+        if (source.previousPosition) {
+          moves.push({ from: source.previousPosition, to: { x: x, y: y } });
+        }
+      });
+    } else if (tile.previousPosition) {
+      moves.push({ from: tile.previousPosition, to: { x: x, y: y } });
+    } else {
+      // 这一步随机长出来的格子：撤回时原地缩回去
+      ghosts.push({ x: x, y: y, value: tile.value });
+    }
+  });
+
+  return { state: state, moves: moves, ghosts: ghosts };
 };
 
 // Save all tile positions and remove merger info
@@ -208,14 +251,15 @@ GameManager.prototype.move = function (direction) {
   });
 
   if (moved) {
-    this.history.push(before);
-    if (this.history.length > 20) this.history.shift();
-
     this.addRandomTile();
 
     if (!this.movesAvailable()) {
       this.over = true; // Game over!
     }
+
+    // 反向帧要在新格子落位之后记（见 undoFrame）
+    this.history.push(this.undoFrame(before));
+    if (this.history.length > 20) this.history.shift();
 
     this.actuate();
   }
