@@ -5,16 +5,16 @@
     {
       "id": "sit.game-2048",
       "name": "2048",
-      "desc": "经典合数字：滑动合并相同数字，凑出 2048；最高分存在本机",
+      "desc": "经典合数字：滑动合并凑出 2048，可撤回上一步；最高分存在本机",
       "author": "Gabriele Cirulli 原作",
       "category": "娱乐",
       "icon": "🔢",
       "type": "bundle",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "homepage": "https://github.com/gabrielecirulli/2048",
-      "zip": "dist/sit.game-2048/1.0.0.zip",
-      "sha256": "cd819306c959c82125a1f12760dc0c2a32e4290dc094af15404ab0ee02ee7b90",
-      "size": 17858,
+      "zip": "dist/sit.game-2048/1.1.0.zip",
+      "sha256": "24e1b8f7cf3cd7eba61e268d3563b36177974f85798e37d6b0eaef75ca0d49a0",
+      "size": 19315,
       "permissions": [
         "storage"
       ],
@@ -23,16 +23,16 @@
     {
       "id": "sit.game-minesweeper",
       "name": "扫雷",
-      "desc": "经典扫雷：10×10 二十颗雷，点开格子、标记地雷，清完就赢",
+      "desc": "经典扫雷：10×10 二十颗雷，长按插旗、双击数字展开，清完就赢",
       "author": "Ania Kubow 原作",
       "category": "娱乐",
       "icon": "💣",
       "type": "bundle",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "homepage": "https://github.com/kubowania/minesweeper",
-      "zip": "dist/sit.game-minesweeper/1.0.0.zip",
-      "sha256": "624be67a760a21c4a698dc4912c3e2dad6accdb5830e67a4e2da5f49c499a43d",
-      "size": 8491,
+      "zip": "dist/sit.game-minesweeper/1.1.0.zip",
+      "sha256": "38535be5442eb5901047eee474836051e5b2bea6aef0be7b20565f0d248c23da",
+      "size": 10111,
       "permissions": [],
       "minAppVersion": "1.16.0"
     }

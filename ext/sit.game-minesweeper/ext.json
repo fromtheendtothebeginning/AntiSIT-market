@@ -1,12 +1,12 @@
 {
   "id": "sit.game-minesweeper",
   "name": "扫雷",
-  "desc": "经典扫雷：10×10 二十颗雷，点开格子、标记地雷，清完就赢",
+  "desc": "经典扫雷：10×10 二十颗雷，长按插旗、双击数字展开，清完就赢",
   "author": "Ania Kubow 原作",
   "category": "娱乐",
   "icon": "💣",
   "type": "bundle",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "permissions": [],
   "minAppVersion": "1.16.0",
   "homepage": "https://github.com/kubowania/minesweeper"

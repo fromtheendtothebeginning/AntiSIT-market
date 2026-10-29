@@ -19,7 +19,10 @@
 
     <div class="above-game">
       <p class="game-intro">滑动合数字，凑出 <strong>2048</strong> 就赢。</p>
-      <a class="restart-button">新游戏</a>
+      <div class="actions">
+        <a class="undo-button disabled">撤回</a>
+        <a class="restart-button">新游戏</a>
+      </div>
     </div>
 
     <div class="game-container">
@@ -65,6 +68,7 @@
 
     <p class="game-explanation">
       在棋盘上<strong>滑动</strong>（或按方向键）让方块移动，两个数字相同的方块碰到一起就会<strong>合并</strong>。
+      走错了按<strong>撤回</strong>（或 Z 键）退回上一步，最多能连撤 20 步。
       最高分存在本机，重开也还在。
     </p>
     <hr>

@@ -3,6 +3,7 @@ function HTMLActuator() {
   this.scoreContainer   = document.querySelector(".score-container");
   this.bestContainer    = document.querySelector(".best-container");
   this.messageContainer = document.querySelector(".game-message");
+  this.undoButton       = document.querySelector(".undo-button");
 
   this.score = 0;
 }
@@ -23,6 +24,7 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
 
     self.updateScore(metadata.score);
     self.updateBestScore(metadata.bestScore);
+    self.updateUndo(metadata.canUndo);
 
     if (metadata.terminated) {
       if (metadata.over) {
@@ -122,6 +124,16 @@ HTMLActuator.prototype.updateScore = function (score) {
 
 HTMLActuator.prototype.updateBestScore = function (bestScore) {
   this.bestContainer.textContent = bestScore;
+};
+
+// 没有可撤回的步骤时把按钮压灰（仍可点，由 GameManager 直接忽略）
+HTMLActuator.prototype.updateUndo = function (canUndo) {
+  if (!this.undoButton) return;
+  if (canUndo) {
+    this.undoButton.classList.remove("disabled");
+  } else {
+    this.undoButton.classList.add("disabled");
+  }
 };
 
 HTMLActuator.prototype.message = function (won) {

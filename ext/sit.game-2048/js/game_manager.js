@@ -6,9 +6,13 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
 
   this.startTiles     = 2;
 
+  // 撤回：每一步走之前在 move() 里压一份棋盘快照，最多留 20 步（只在内存里）
+  this.history        = [];
+
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
+  this.inputManager.on("undo", this.undo.bind(this));
 
   this.setup();
 }
@@ -26,6 +30,23 @@ GameManager.prototype.keepPlaying = function () {
   this.actuator.continueGame(); // Clear the game won/lost message
 };
 
+// Undo the last move: restore the snapshot taken before it
+GameManager.prototype.undo = function () {
+  if (!this.history.length) return;
+
+  var state = this.history.pop();
+
+  this.grid        = new Grid(state.grid.size, state.grid.cells);
+  this.score       = state.score;
+  this.over        = state.over;
+  this.won         = state.won;
+  this.keepPlaying = state.keepPlaying;
+
+  // 撤回到「游戏结束 / 你赢了」之前，把浮层收掉
+  this.actuator.continueGame();
+  this.actuate();
+};
+
 // Return true if the game is lost, or has won and the user hasn't kept playing
 GameManager.prototype.isGameTerminated = function () {
   return this.over || (this.won && !this.keepPlaying);
@@ -33,6 +54,9 @@ GameManager.prototype.isGameTerminated = function () {
 
 // Set up the game
 GameManager.prototype.setup = function () {
+  // 新开的局没有可撤回的步骤
+  this.history = [];
+
   var previousState = this.storageManager.getGameState();
 
   // Reload the game from a previous game if present
@@ -93,7 +117,8 @@ GameManager.prototype.actuate = function () {
     over:       this.over,
     won:        this.won,
     bestScore:  this.storageManager.getBestScore(),
-    terminated: this.isGameTerminated()
+    terminated: this.isGameTerminated(),
+    canUndo:    this.history.length > 0
   });
 
 };
@@ -132,6 +157,9 @@ GameManager.prototype.move = function (direction) {
   var self = this;
 
   if (this.isGameTerminated()) return; // Don't do anything if the game's over
+
+  // 撤回用：先记下走之前的棋盘，真的移动了才进历史
+  var before = this.serialize();
 
   var cell, tile;
 
@@ -180,6 +208,9 @@ GameManager.prototype.move = function (direction) {
   });
 
   if (moved) {
+    this.history.push(before);
+    if (this.history.length > 20) this.history.shift();
+
     this.addRandomTile();
 
     if (!this.movesAvailable()) {

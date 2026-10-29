@@ -24,8 +24,13 @@
    （`js/keyboard_input_manager.js` 里 touchend 的手势识别），没有改动。
 5. `index.html` 补了 `<meta name="viewport">`、`lang="zh-CN"`；底部的「官方版声明」换成
    指向上游仓库的署名（点开由系统浏览器打开，见 `docs/extensions.md` 的导航约定）。
+6. **撤回**：`game_manager.js` 在每次有效移动前压一份棋盘快照（`serialize()`，最多 20 步，
+   只在内存里；新开一局清空），`undo-button` 弹栈恢复棋盘、分数与胜负状态，并收掉
+   「游戏结束 / 你赢了」浮层——所以踩死之后也能撤回。`html_actuator.js` 按有无历史
+   给按钮压灰/恢复，`keyboard_input_manager.js` 绑了按钮和 Z / Ctrl+Z 快捷键，
+   `index.html` / `style/main.css` 加了按钮与样式。
 
 ## 未改动
 
-`js/game_manager.js`、`js/grid.js`、`js/tile.js`、`js/html_actuator.js`（除上面第 4 条的文案）、
-`js/keyboard_input_manager.js`、三个 polyfill 与 `style/main.css` 除上述之外的规则，都与上游一致。
+`js/grid.js`、`js/tile.js`、`js/ext_storage_manager.js`、三个 polyfill 与 `style/main.css`
+除上述之外的规则，都与上游一致（`js/html_actuator.js` 仅按第 4、6 条改文案与撤回按钮状态）。

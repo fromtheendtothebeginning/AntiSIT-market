@@ -831,3 +831,45 @@ hr {
   .tile.tile-position-4-3 { transform: translate(calc(3 * var(--step)), calc(2 * var(--step))); }
   .tile.tile-position-4-4 { transform: translate(calc(3 * var(--step)), calc(3 * var(--step))); }
 }
+
+/* ==========================================================================
+   AntiSIT 拓展改动：撤回按钮。上游右上角只有一个「新游戏」，这里改成一组按钮；
+   窄屏沿用上游给「新游戏」的 42% 宽度，两个按钮平分。
+   ========================================================================== */
+.actions {
+  float: right;
+  display: flex;
+  gap: 8px; }
+
+/* 两个按钮共用上游「新游戏」的样式（上游的 .restart-button 规则保留不动） */
+.actions a {
+  display: inline-block;
+  float: none;
+  margin: 0;
+  background: #8f7a66;
+  border-radius: 3px;
+  padding: 0 20px;
+  text-decoration: none;
+  color: #f9f6f2;
+  height: 40px;
+  line-height: 42px;
+  text-align: center; }
+
+.undo-button {
+  background: #a89a8c; }
+
+.undo-button.disabled {
+  opacity: 0.45;
+  cursor: default; }
+
+@media screen and (max-width: 560px) {
+  .actions {
+    width: 42%;
+    margin-top: 2px; }
+
+  .actions a {
+    flex: 1;
+    width: auto;
+    padding: 0 4px;
+    box-sizing: border-box; }
+}

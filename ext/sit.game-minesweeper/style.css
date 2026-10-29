@@ -74,7 +74,14 @@ body {
   border: 2px solid;
   border-color: var(--edge-light) var(--edge-dark) var(--edge-dark) var(--edge-light);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* 长按计时中：按下反馈（够 400ms 就插旗） */
+.cell.pressing { background: #e8e4d6; }
+
+/* 双击展开时周围旗数不对：闪一下，不替用户猜 */
+.cell.warn { background: #f3c9bf; }
 
 /* 已翻开：压平的凹格 */
 .cell.checked {
