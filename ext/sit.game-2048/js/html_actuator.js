@@ -106,9 +106,12 @@ HTMLActuator.prototype.addGhostTile = function (tile) {
   var wrapper = document.createElement("div");
   var inner   = document.createElement("div");
 
-  this.applyClasses(wrapper, [
+  var classes = [
     "tile", "tile-" + tile.value, this.positionClass(tile), "tile-vanish"
-  ]);
+  ];
+  if (tile.value > 2048) classes.push("tile-super");
+
+  this.applyClasses(wrapper, classes);
   inner.classList.add("tile-inner");
   inner.textContent = tile.value;
   wrapper.appendChild(inner);
