@@ -37,3 +37,12 @@
 
 `js/grid.js`、`js/tile.js`、`js/ext_storage_manager.js`、三个 polyfill 与 `style/main.css`
 除上述之外的规则，都与上游一致（`js/html_actuator.js` 仅按第 4、6 条改文案与撤回按钮状态）。
+
+## 2026-11 Cordis 迁移
+
+* 市场运行时不支持旧 `index.html` 包，入口改为 Cordis 插件 `main.js`（`ext.json` 的
+  `runtime: "cordis"`、`main: "main.js"`）；样式仍是 `style/main.css`。
+* 原始 `index.html` 与 `js/` 移到 `_src/` 保留作维护源（`_src/` 不会打进 zip）；
+  `main.js` 由这些源文件拼成，玩法代码未改。
+* 存储从裸 `antiSIT.call` 改为 Cordis 的 `ctx.storage`；`permissions` 仍为 `storage`。
+* 版本升到 `1.2.0`，`minAppVersion` 升到 `1.25.0`（Cordis 运行时从该版本开始）。

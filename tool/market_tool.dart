@@ -172,10 +172,13 @@ void _pack(String root) {
           '超过上限 ${humanSize(kMaxZipBytes)}');
     }
     final files = readZip(bytes);
-    if (entryHtmlOf(files.keys) == null) {
-      throw FormatException('${m.id} 的压缩包里没找到 html（根目录放一个 index.html 最省事）');
+    if (!files.containsKey('ext.json')) {
+      throw FormatException('${m.id} 的压缩包里没有 ext.json（Cordis 拓展必须带清单）');
     }
-    // 体检：内置页里用不了的东西（localStorage / 没声明 network 却引外链）+ 换行符
+    if (!files.containsKey(m.main)) {
+      throw FormatException('${m.id} 的压缩包里没有入口 ${m.main}（ext.json 的 main 指向它）');
+    }
+    // 体检：Cordis 页里用不了的东西（localStorage / 没声明 network 却引外链）+ 换行符
     final lint = [...lintBundle(files, permissions: m.permissions), ...lintLineEndings(files)];
     if (lint.isNotEmpty) {
       throw FormatException('${m.id} 有问题：\n  - ${lint.join('\n  - ')}');
@@ -375,7 +378,8 @@ Future<void> _check(String root) async {
     // 这类坑，要在这儿就被拦下。dist 与源是否同步由上面的哈希比对负责。
     try {
       final fresh = readZip(packDirectory(s.dir));
-      if (entryHtmlOf(fresh.keys) == null) problems.add('${m.id}：压缩包里没有 html 入口');
+      if (!fresh.containsKey('ext.json')) problems.add('${m.id}：压缩包里没有 ext.json');
+      if (!fresh.containsKey(m.main)) problems.add('${m.id}：压缩包里没有入口 ${m.main}');
       final lint = [...lintBundle(fresh, permissions: m.permissions), ...lintLineEndings(fresh)];
       for (final p in lint) {
         problems.add('${m.id}：$p');

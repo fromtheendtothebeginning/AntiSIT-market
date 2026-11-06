@@ -41,6 +41,7 @@ class CatalogEntry {
       'category': m.category,
       if (m.icon.isNotEmpty) 'icon': m.icon,
       'type': m.type,
+      if (m.isBundle) 'runtime': m.runtime,
       if (m.version.isNotEmpty) 'version': m.version,
       if (m.type == 'web') 'url': m.url,
       if (m.homepage.isNotEmpty) 'homepage': m.homepage,
@@ -90,7 +91,7 @@ List<CatalogEntry> parseCatalogEntries(Object? raw) {
     final id = '${item['id'] ?? ''}'.trim();
     if (id.isEmpty) throw const FormatException('目录里有条目缺 id');
     out.add(CatalogEntry(
-      manifest: ExtManifest.parse(item, dirId: id),
+      manifest: ExtManifest.parse(item, dirId: id, requireArtifactSource: false),
       zip: '${item['zip'] ?? ''}',
       sha256: '${item['sha256'] ?? ''}',
       size: item['size'] is int ? item['size'] as int : 0,

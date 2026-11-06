@@ -6,8 +6,10 @@
   "category": "工具",
   "icon": "🛠",
   "type": "bundle",
+  "runtime": "cordis",
   "version": "1.0.0",
+  "main": "main.js",
   "permissions": ["storage"],
-  "minAppVersion": "1.16.0",
+  "minAppVersion": "1.25.0",
   "homepage": "https://github.com/你的仓库"
 }

@@ -25,6 +25,8 @@ Map<String, Object?> manifestJson({
       'category': '工具',
       'icon': '🧮',
       'type': type,
+      if (type == 'bundle') 'runtime': 'cordis',
+      if (type == 'bundle') 'main': 'main.js',
       if (version.isNotEmpty) 'version': version,
       if (url.isNotEmpty) 'url': url,
       'permissions': permissions,
@@ -133,12 +135,14 @@ void main() {
       expect(names, ['index.html']);
     });
 
-    test('入口规则：优先根目录 index.html，否则第一个 html', () {
-      expect(entryHtmlOf(['index.html', 'a.html']), 'index.html');
-      expect(entryHtmlOf(['b.html', 'a.html']), 'a.html');
-      expect(entryHtmlOf(['app/index.html']), 'app/index.html');
-      expect(entryHtmlOf(['app/index.html', 'app/a.html']), 'app/index.html');
-      expect(entryHtmlOf(['a.txt']), isNull);
+    test('bundle 必须有 cordis 入口 main.js', () {
+      final raw = manifestJson()..remove('runtime');
+      expect(() => parseOk(raw), throwsA(isA<FormatException>()));
+      final noMain = manifestJson()..remove('main');
+      expect(() => parseOk(noMain), throwsA(isA<FormatException>()));
+      final badMain = manifestJson()..['main'] = '../evil.js';
+      expect(() => parseOk(badMain), throwsA(isA<FormatException>()));
+      expect(parseOk(manifestJson()).main, 'main.js');
     });
 
     test('读包时拦下 zip-slip 条目', () {

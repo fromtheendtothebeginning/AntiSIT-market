@@ -151,7 +151,10 @@ HTMLActuator.prototype.updateScore = function (score) {
 };
 
 HTMLActuator.prototype.updateBestScore = function (bestScore) {
-  this.bestContainer.textContent = bestScore;
+  // 最高分只增不减：异步存储读回来之前先渲染的那一帧带的是 0，
+  // 它比已读到的值晚落地时不能把界面上的最高分盖回去。
+  var shown = parseInt(this.bestContainer.textContent, 10) || 0;
+  if (bestScore > shown) this.bestContainer.textContent = bestScore;
 };
 
 // 没有可撤回的步骤时把按钮压灰（仍可点，由 GameManager 直接忽略）

@@ -8,7 +8,7 @@ library;
 ///
 /// * `storage` —— 读写这条拓展自己的键值存储（`plugin.ext.data.<id>.*`）
 /// * `network` —— 运行时联网（zip 包默认禁网，见 App 侧的 CSP）
-const Set<String> kSensitivePermissions = {'storage', 'network'};
+const Set<String> kSensitivePermissions = {'storage', 'network', 'ai'};
 
 /// 基础接口：只跟界面有关（读配色、弹提示、关页面、改自己的卡片），
 /// 声明不声明都放行——放进白名单是为了拦住 `stroage` 这种手滑拼错。
@@ -45,6 +45,8 @@ class ExtManifest {
     required this.homepage,
     required this.permissions,
     required this.minAppVersion,
+    this.runtime = '',
+    this.main = '',
   });
 
   /// 稳定 id：`sit.my-tool` 这种小写点分串，必须与 `ext/<id>/` 目录名一致。
@@ -66,13 +68,19 @@ class ExtManifest {
   final String homepage;
   final List<String> permissions;
 
+  /// bundle 的运行形态：目前只认 `cordis`。旧目录没有这个字段 = 旧版 html 包。
+  final String runtime;
+
+  /// bundle 的 Cordis 入口（`ext.json` 的 `main`，zip 根目录下的相对路径）。
+  final String main;
+
   /// 可空：`x.y.z`，低于它的 App 装不了（市场里显示「需要升级 App」）。
   final String minAppVersion;
 
   bool get isBundle => type == 'bundle';
 
   /// 解析并校验。`dirId` 是它所在的目录名，用来挡住「目录名和 id 对不上」。
-  static ExtManifest parse(Object? raw, {required String dirId}) {
+  static ExtManifest parse(Object? raw, {required String dirId, bool requireArtifactSource = true}) {
     if (raw is! Map) throw const FormatException('ext.json 要是一个 JSON 对象');
 
     String str(String key, {int? max, bool required = false}) {
@@ -107,6 +115,17 @@ class ExtManifest {
       }
     } else if (version.isNotEmpty && !_versionRe.hasMatch(version)) {
       throw FormatException('version 要写成 x.y.z，现在是「$version」');
+    }
+
+    // 2026-11 起市场只收 Cordis 包：旧 html bundle 不再执行。
+    final runtime = str('runtime');
+    if (type == 'bundle' && runtime != 'cordis') {
+      throw const FormatException('bundle 拓展必须写 "runtime": "cordis"（旧 html 包不再支持）');
+    }
+    final main = type == 'bundle' && requireArtifactSource ? _safeRelPath(str('main'), 'main') : '';
+    if (type == 'bundle' && requireArtifactSource) {
+      if (main.isEmpty) throw const FormatException('Cordis 拓展缺少 main（入口 .js）');
+      if (!main.endsWith('.js')) throw const FormatException('ext.json 的 main 必须是 .js 文件');
     }
 
     final url = str('url', max: 300);
@@ -163,7 +182,22 @@ class ExtManifest {
       homepage: homepage,
       permissions: permissions,
       minAppVersion: minAppVersion,
+      runtime: runtime,
+      main: main,
     );
+  }
+
+  static String _safeRelPath(String raw, String field) {
+    final s = raw.trim().replaceAll('\\', '/');
+    if (s.isEmpty) return '';
+    if (s.startsWith('/') || RegExp(r'^[A-Za-z]:').hasMatch(s)) {
+      throw FormatException('ext.json 的 $field 必须是相对路径');
+    }
+    final parts = s.split('/');
+    if (parts.contains('..') || parts.contains('.')) {
+      throw FormatException('ext.json 的 $field 不能指向目录外');
+    }
+    return s;
   }
 
   /// 敏感权限（要列给用户看的那几个）。
@@ -175,6 +209,7 @@ class ExtManifest {
 const Map<String, String> kPermissionLabels = {
   'storage': '在本机保存数据（记设置、记历史）',
   'network': '运行时联网',
+  'ai': '调用 AI 对话（用你配置的模型与 API Key，可能产生费用）',
   'theme': '读取 App 配色（只读）',
   'toast': '弹一条 App 风格的提示',
   'close': '关闭自己的页面',

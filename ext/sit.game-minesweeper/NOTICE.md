@@ -42,3 +42,11 @@
 
 棋盘尺寸（10×10 / 20 颗雷）、随机撒雷的洗牌写法、以「格子 div + class 标记状态」为核心的
 结构、`data` 属性存雷数、`flag` / `checked` / `bomb` 的类名，都与上游一致。
+
+## 2026-11 Cordis 迁移
+
+* 入口从 `index.html` 改为 Cordis 插件 `main.js`（`ext.json` 的 `runtime: "cordis"`、
+  `main: "main.js"`）；样式仍是 `style.css`。
+* 原始 `index.html` 与 `app.js` 移到 `_src/` 保留作维护源（`_src/` 不会打进 zip）；
+  `main.js` 由这些源文件拼成，玩法代码未改。
+* 版本升到 `1.2.0`，`minAppVersion` 升到 `1.25.0`（Cordis 运行时从该版本开始）。

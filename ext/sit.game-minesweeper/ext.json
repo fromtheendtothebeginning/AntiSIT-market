@@ -6,8 +6,11 @@
   "category": "娱乐",
   "icon": "💣",
   "type": "bundle",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "permissions": [],
-  "minAppVersion": "1.16.0",
-  "homepage": "https://github.com/kubowania/minesweeper"
+  "minAppVersion": "1.25.0",
+  "homepage": "https://github.com/kubowania/minesweeper",
+  "runtime": "cordis",
+  "main": "main.js",
+  "style": "style.css"
 }
