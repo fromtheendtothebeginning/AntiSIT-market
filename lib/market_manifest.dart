@@ -21,8 +21,53 @@ const List<String> kCategories = ['学习', '工具', '生活', '娱乐', '其�
 const int kNameMax = 20;
 const int kDescMax = 60;
 
-/// 图标：图片网址，或不超过 4 个字的文字 / emoji（与 App 侧 `iconTextMaxLength` 对齐）。
+/// 图标：`line:<name>` 镂空图标、图片网址，或不超过 4 个字的文字 / emoji
+/// （与 App 侧 `iconTextMaxLength` 对齐）。
 const int kIconTextMax = 4;
+
+/// 可用的镂空图标名：必须与 App 侧 `ExtIcon.lineIcons` 完全一致，否则装了不显示。
+/// 官方条目统一用它，避免 emoji 在不同系统上画成彩色实心图案。
+const Set<String> kLineIcons = {
+  'extension',
+  'handyman',
+  'grid_view',
+  'flag',
+  'sports_esports',
+  'calculate',
+  'menu_book',
+  'fitness_center',
+  'schedule',
+  'payments',
+  'school',
+  'science',
+  'terminal',
+  'brush',
+  'music_note',
+  'photo_camera',
+  'place',
+  'search',
+  'settings',
+  'star',
+  'favorite',
+  'home',
+  'work',
+  'build',
+  'code',
+  'cloud',
+  'chat',
+  'mail',
+  'map',
+  'book',
+  'timer',
+  'wallet',
+  'receipt_long',
+  'event',
+  'checklist',
+  'insights',
+  'translate',
+  'qr_code',
+  'auto_awesome',
+};
 
 /// 单个 zip 的体积上限：超了说明这拓展不是「小功能」，该考虑做成独立 App。
 const int kMaxZipBytes = 2 * 1024 * 1024;
@@ -148,8 +193,15 @@ class ExtManifest {
     }
 
     final icon = str('icon', max: 300);
-    if (icon.isNotEmpty && !icon.startsWith('http') && icon.length > kIconTextMax) {
-      throw FormatException('icon 要么是 http(s) 图片网址，要么不超过 $kIconTextMax 个字');
+    if (icon.startsWith('line:')) {
+      final name = icon.substring(5);
+      if (!kLineIcons.contains(name)) {
+        throw FormatException('镂空图标名「$name」不认识：只能写 '
+            '${kLineIcons.join(' / ')}（前缀是 line:）');
+      }
+    } else if (icon.isNotEmpty && !icon.startsWith('http') && icon.length > kIconTextMax) {
+      throw FormatException('icon 要么是 line:<name> 镂空图标、http(s) 图片网址，'
+          '要么不超过 $kIconTextMax 个字');
     }
 
     final minAppVersion = str('minAppVersion');

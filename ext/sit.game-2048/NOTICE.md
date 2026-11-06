@@ -46,3 +46,4 @@
   `main.js` 由这些源文件拼成，玩法代码未改。
 * 存储从裸 `antiSIT.call` 改为 Cordis 的 `ctx.storage`；`permissions` 仍为 `storage`。
 * 版本升到 `1.2.0`，`minAppVersion` 升到 `1.25.0`（Cordis 运行时从该版本开始）。
+* `1.2.1`：卡片图标改为镂空线性图标（`line:grid_view`），玩法、权限不变。

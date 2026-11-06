@@ -99,6 +99,12 @@ void main() {
       expect(() => parseOk(manifestJson()..['icon'] = '五个字图标'),
           throwsA(isA<FormatException>()));
     });
+
+    test('图标支持 line:<name> 镂空图标；未知名字拦下', () {
+      expect(parseOk(manifestJson()..['icon'] = 'line:flag').icon, 'line:flag');
+      expect(() => parseOk(manifestJson()..['icon'] = 'line:no-such'),
+          throwsA(isA<FormatException>()));
+    });
   });
 
   group('打包', () {

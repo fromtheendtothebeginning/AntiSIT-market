@@ -138,7 +138,7 @@ AntiSIT 插件源：<你的 GitHub 用户>/<仓库名>
 | `desc` | ✓ | ≤60 字，显示在卡片名称下方 |
 | `author` | ✓ | ≤24 字 |
 | `category` | ✓ | `学习` / `工具` / `生活` / `娱乐` / `其他` |
-| `icon` | | 图片网址（https），或 ≤4 字的文字 / emoji；留空用名称首字 |
+| `icon` | | `line:<name>` 镂空图标（官方条目统一用这个）、图片网址（https），或 ≤4 字的文字 / emoji；留空用名称首字 |
 | `type` | ✓ | `bundle` 或 `web` |
 | `runtime` | bundle ✓ | 固定写 `cordis`（旧 html 包不再执行） |
 | `main` | bundle ✓ | Cordis 入口，zip 根目录下的 `.js` 相对路径（通常 `main.js`） |
@@ -148,6 +148,10 @@ AntiSIT 插件源：<你的 GitHub 用户>/<仓库名>
 | `permissions` | | 见下；`storage` / `network` / `ai` 不声明就会被拒 |
 | `minAppVersion` | | `x.y.z`，低于它的 App 显示「需要升级 App」 |
 | `homepage` | | https 网址 |
+
+`line:<name>` 的可用名字必须与 App 侧 `ExtIcon.lineIcons` 一致（如 `handyman` / `grid_view` /
+`flag` / `terminal` / `school` / `book`；完整列表见 `lib/market_manifest.dart` 的 `kLineIcons`，
+写错会在 `check` 时被拦下）。官方条目全部使用镂空图标；用户自己填的 emoji 仍会保留。
 
 ### 权限
 

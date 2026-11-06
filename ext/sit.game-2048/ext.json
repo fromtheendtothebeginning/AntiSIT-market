@@ -4,9 +4,9 @@
   "desc": "经典合数字：滑动合并凑出 2048，可撤回上一步；最高分存在本机",
   "author": "Gabriele Cirulli 原作",
   "category": "娱乐",
-  "icon": "🔢",
+  "icon": "line:grid_view",
   "type": "bundle",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "permissions": [
     "storage"
   ],
