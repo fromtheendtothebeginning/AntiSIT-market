@@ -11,12 +11,18 @@ library;
 /// * `ai` —— 调用用户的 AI 提供商
 /// * `notification` —— 发即时 / 定时本地通知
 /// * `secrets` —— 保存 Cookie / Token 这类登录凭据（系统加密存储）
+/// * `clipboard` —— 读写剪贴板（读取时运行时再确认）
+/// * `login` —— 打开登录页并读取声明域名的 Cookie（打开前运行时再确认）
+/// * `background` —— 前台服务保活（常驻通知，开启前运行时再确认）
 const Set<String> kSensitivePermissions = {
   'storage',
   'network',
   'ai',
   'notification',
   'secrets',
+  'clipboard',
+  'login',
+  'background',
 };
 
 /// 基础接口：只跟界面有关（读配色、弹提示、关页面、改自己的卡片），
@@ -273,6 +279,9 @@ const Map<String, String> kPermissionLabels = {
   'ai': '调用 AI 对话（用你配置的模型与 API Key，可能产生费用）',
   'notification': '给你发通知（可定时提醒，App 没打开也能收到）',
   'secrets': '保存登录凭据 / Cookie（系统加密存储，按拓展隔离）',
+  'clipboard': '读写剪贴板（读取时会再弹一次确认）',
+  'login': '打开登录页并读取你声明域名的 Cookie（打开前会再弹一次确认）',
+  'background': '在后台保持运行（显示常驻通知，开启前会再弹一次确认）',
   'theme': '读取 App 配色（只读）',
   'toast': '弹一条 App 风格的提示',
   'close': '关闭自己的页面',

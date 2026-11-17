@@ -11,16 +11,21 @@
       "icon": "line:event",
       "type": "bundle",
       "runtime": "cordis",
-      "version": "1.1.1",
+      "version": "1.2.0",
       "homepage": "https://github.com/fromtheendtothebeginning/AntiSIT-market",
-      "zip": "dist/sit.deadline-reminder/1.1.1.zip",
-      "sha256": "6a9d19233bdbd07ce168b8a76f0826c2d0ab79619c54049b60bc5a31598e70a7",
-      "size": 24084,
+      "zip": "dist/sit.deadline-reminder/1.2.0.zip",
+      "sha256": "54aede5a7c3ab7aec4acf9d209ba2a0c5c2fca4d60a309e7cdd32da0d8951f90",
+      "size": 30667,
       "permissions": [
         "storage",
-        "notification"
+        "notification",
+        "network",
+        "secrets",
+        "clipboard",
+        "login",
+        "background"
       ],
-      "minAppVersion": "1.34.0"
+      "minAppVersion": "1.37.7"
     },
     {
       "id": "sit.game-2048",

@@ -88,6 +88,103 @@
 
 .dl-tools button:active { background: var(--antisit-accent-soft, rgba(59, 130, 246, 0.1)); }
 
+/* ---------- 学习通同步条 ---------- */
+
+.dl-school { margin: -4px 0 14px; }
+
+.dl-school-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--antisit-border, #e3e3e8);
+  border-radius: 12px 12px 0 0;
+  background: var(--antisit-card, #f7f7f9);
+}
+
+.dl-school-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 12px 10px;
+  border: 1px solid var(--antisit-border, #e3e3e8);
+  border-top: 0;
+  border-radius: 0;
+  background: var(--antisit-card, #f7f7f9);
+}
+
+.dl-school-actions:last-child {
+  border-radius: 0 0 12px 12px;
+}
+
+.dl-school-bg {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  border: 1px solid var(--antisit-border, #e3e3e8);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  background: var(--antisit-card, #f7f7f9);
+}
+
+.dl-school-title { font-size: 13px; font-weight: 600; }
+
+.dl-school-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--antisit-text-secondary, #6b6b72);
+}
+
+.dl-school-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--antisit-accent, #3b82f6);
+  cursor: pointer;
+}
+
+.dl-school-btn:active { transform: scale(0.97); }
+.dl-school-btn:disabled { opacity: 0.45; }
+
+.dl-school-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--antisit-success, #16a34a);
+}
+
+.dl-school-dot.is-busy {
+  background: var(--antisit-accent, #3b82f6);
+  animation: dl-pulse 1s ease-in-out infinite;
+}
+
+@keyframes dl-pulse {
+  50% { opacity: 0.3; }
+}
+
+.dl-link:disabled { opacity: 0.45; }
+
+.dl-quiet-link { color: var(--antisit-text-muted, #9a9aa3) !important; }
+
+.dl-sync-tag {
+  flex: none;
+  padding: 0 5px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--antisit-accent, #3b82f6) 35%, transparent);
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--antisit-accent, #3b82f6);
+}
+
 /* ---------- 列表 ---------- */
 
 .dl-section { margin-bottom: 18px; }

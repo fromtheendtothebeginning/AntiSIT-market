@@ -167,6 +167,9 @@ GitHub / Gitee Token，直接推送到公开仓库，生成同样的 `market.jso
 | `ai` | 调用 `ctx.ai.chat` / `ctx.ai.chatTools`（用用户的模型与 Key，可能产生费用）。**要**声明 |
 | `notification` | 用 `ctx.notify.show / schedule / cancel / cancelAll` 发通知（需 App ≥ 1.34.0）。**要**声明 |
 | `secrets` | 用 `ctx.secrets.*` 保存 Cookie / Token 这类登录凭据（系统加密存储）。**要**声明 |
+| `clipboard` | 用 `ctx.clipboard.read / write` 读写剪贴板；读取时 App 会再弹一次确认。**要**声明 |
+| `login` | 用 `ctx.login.open` 打开可见登录页并读取声明域名的 Cookie；打开前 App 会再弹一次确认。**要**声明 |
+| `background` | 用 `ctx.background.keepAlive` 开前台服务保活（常驻通知）；开启前 App 会再弹一次确认。**要**声明 |
 | `theme` `toast` `close` `card` | 只跟界面有关，不声明也放行；写进 `permissions` 只是为了拦住拼写错误 |
 
 zip 包默认**禁网**（App 注入 `connect-src 'none'` 的 CSP）：这样审核过的那份代码就是
