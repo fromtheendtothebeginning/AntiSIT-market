@@ -3,6 +3,26 @@
   "keyId": "k1",
   "extensions": [
     {
+      "id": "sit.deadline-reminder",
+      "name": "截止提醒",
+      "desc": "作业与考试截止时间一屏罗列，到点前推送提醒",
+      "author": "AntiSIT",
+      "category": "学习",
+      "icon": "line:event",
+      "type": "bundle",
+      "runtime": "cordis",
+      "version": "1.1.1",
+      "homepage": "https://github.com/fromtheendtothebeginning/AntiSIT-market",
+      "zip": "dist/sit.deadline-reminder/1.1.1.zip",
+      "sha256": "6a9d19233bdbd07ce168b8a76f0826c2d0ab79619c54049b60bc5a31598e70a7",
+      "size": 24084,
+      "permissions": [
+        "storage",
+        "notification"
+      ],
+      "minAppVersion": "1.34.0"
+    },
+    {
       "id": "sit.game-2048",
       "name": "2048",
       "desc": "经典合数字：滑动合并凑出 2048，可撤回上一步；最高分存在本机",

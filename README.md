@@ -39,8 +39,9 @@ App 内置公钥，**验签通过才认目录**，每个 zip 还要对得上目�
 |---|---|---|
 | [`sit.game-2048`](ext/sit.game-2048) | 2048：滑动合数字、最高分存本机 | [gabrielecirulli/2048](https://github.com/gabrielecirulli/2048) · MIT |
 | [`sit.game-minesweeper`](ext/sit.game-minesweeper) | 扫雷：10×10 二十颗雷，标记模式 / 长按插旗，**不声明任何权限**（不存数据不联网） | [kubowania/minesweeper](https://github.com/kubowania/minesweeper) · MIT |
+| [`sit.deadline-reminder`](ext/sit.deadline-reminder) | 截止提醒：未完成作业 / 考试按截止时间陈列、到点前弹通知；可只读同步学习通 | 原创 · GPL-3.0-only |
 
-两个游戏都是**改编版**：`ext/<id>/NOTICE.md` 写清了上游仓库、锁定的 commit 与改了哪几处
+两个游戏条目都是**改编版**：`ext/<id>/NOTICE.md` 写清了上游仓库、锁定的 commit 与改了哪几处
 （换掉 `localStorage`、去外链字体、手机版式、中文文案等），`LICENSE` 随包一起打进 zip
 ——MIT 要求「随副本带上许可与版权声明」，所以它们属于要发出去的东西，不会被 `skipInZip` 跳过。
 
@@ -114,6 +115,10 @@ AntiSIT 插件源：<你的 GitHub 用户>/<仓库名>
 别人在市场页「插件源 → 添加第三方源」里粘贴 `你的用户/仓库名`，App 会显示**同一串指纹**，
 核对一致才添加。以后改内容：**升 `ext.json` 里的 version**，再跑一次 `publish` + push。
 
+不想在电脑上跑 CLI 也可以：AntiSIT App 里「拓展工坊 → ⋯ → 发布拓展」支持填
+GitHub / Gitee Token，直接推送到公开仓库，生成同样的 `market.json` + `.sig` + `dist/*.zip`，
+并给一个「下载拓展」直装二维码。发布签名密钥由 App 在本机生成、存系统加密存储。
+
 几条要知道的：
 
 * **格式就是官方目录那份**（同一套 `market.json` + `.sig`，只是内嵌了你的公钥）——
@@ -145,7 +150,7 @@ AntiSIT 插件源：<你的 GitHub 用户>/<仓库名>
 | `style` | | 可选样式文件，zip 根目录下的 `.css` 相对路径（通常 `style.css`） |
 | `version` | bundle ✓ | `x.y.z`。**改了内容必须升版本**，否则已装的用户拿不到更新 |
 | `url` | web ✓ | 必须 https；bundle 不许有 |
-| `permissions` | | 见下；`storage` / `network` / `ai` 不声明就会被拒 |
+| `permissions` | | 见下；`storage` / `network` / `ai` / `notification` / `secrets` 不声明就会被拒 |
 | `minAppVersion` | | `x.y.z`，低于它的 App 显示「需要升级 App」 |
 | `homepage` | | https 网址 |
 
@@ -160,12 +165,27 @@ AntiSIT 插件源：<你的 GitHub 用户>/<仓库名>
 | `storage` | 用到 `storage.get / set / remove`（**要**声明，安装时会告诉用户） |
 | `network` | 页面运行时要联网（fetch / XHR / 远程图片）。**要**声明 |
 | `ai` | 调用 `ctx.ai.chat` / `ctx.ai.chatTools`（用用户的模型与 Key，可能产生费用）。**要**声明 |
+| `notification` | 用 `ctx.notify.show / schedule / cancel / cancelAll` 发通知（需 App ≥ 1.34.0）。**要**声明 |
+| `secrets` | 用 `ctx.secrets.*` 保存 Cookie / Token 这类登录凭据（系统加密存储）。**要**声明 |
 | `theme` `toast` `close` `card` | 只跟界面有关，不声明也放行；写进 `permissions` 只是为了拦住拼写错误 |
 
 zip 包默认**禁网**（App 注入 `connect-src 'none'` 的 CSP）：这样审核过的那份代码就是
 手机上跑的那份，不会运行时再去作者服务器拉新脚本。确实要联网就声明 `network`。
 
 App 里的用户数据（学号、课表、成绩、凭据）**不在** `antiSIT` 接口里，拓展拿不到。
+
+### 扫码分发（App ≥ 1.35.0）
+
+不经过市场也能发：把下面这段 JSON 直接生成二维码，用户在「拓展」页右上角扫一扫，
+结果面板会给「下载拓展」，确认包内容后安装。
+
+```json
+{"antisit":"ext","url":"https://example.com/sit.my-tool.zip","sha256":"zip 的 64 位十六进制 sha256"}
+```
+
+`url` 必须是 **https**；`sha256` 必填，App 下载后先核对内容，对不上就不解压。
+可选 `"name"` / `"id"` 只用于安装前展示；写了 `id` 就必须与包里的 `ext.json` 一致。
+同 id 已安装 / 与内置拓展冲突时 App 会拒绝，先卸载或换 id。
 
 ## 写 Cordis 拓展
 

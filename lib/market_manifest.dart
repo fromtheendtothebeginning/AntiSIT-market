@@ -8,7 +8,16 @@ library;
 ///
 /// * `storage` —— 读写这条拓展自己的键值存储（`plugin.ext.data.<id>.*`）
 /// * `network` —— 运行时联网（zip 包默认禁网，见 App 侧的 CSP）
-const Set<String> kSensitivePermissions = {'storage', 'network', 'ai'};
+/// * `ai` —— 调用用户的 AI 提供商
+/// * `notification` —— 发即时 / 定时本地通知
+/// * `secrets` —— 保存 Cookie / Token 这类登录凭据（系统加密存储）
+const Set<String> kSensitivePermissions = {
+  'storage',
+  'network',
+  'ai',
+  'notification',
+  'secrets',
+};
 
 /// 基础接口：只跟界面有关（读配色、弹提示、关页面、改自己的卡片），
 /// 声明不声明都放行——放进白名单是为了拦住 `stroage` 这种手滑拼错。
@@ -262,6 +271,8 @@ const Map<String, String> kPermissionLabels = {
   'storage': '在本机保存数据（记设置、记历史）',
   'network': '运行时联网',
   'ai': '调用 AI 对话（用你配置的模型与 API Key，可能产生费用）',
+  'notification': '给你发通知（可定时提醒，App 没打开也能收到）',
+  'secrets': '保存登录凭据 / Cookie（系统加密存储，按拓展隔离）',
   'theme': '读取 App 配色（只读）',
   'toast': '弹一条 App 风格的提示',
   'close': '关闭自己的页面',
