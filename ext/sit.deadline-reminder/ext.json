@@ -7,10 +7,10 @@
   "icon": "line:event",
   "type": "bundle",
   "runtime": "cordis",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "main": "main.js",
   "style": "style.css",
   "permissions": ["storage", "notification", "network", "secrets", "clipboard", "login", "background"],
-  "minAppVersion": "1.37.7",
+  "minAppVersion": "1.38.0",
   "homepage": "https://github.com/fromtheendtothebeginning/AntiSIT-market"
 }

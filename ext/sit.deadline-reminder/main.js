@@ -22,6 +22,7 @@ let listEl = null;
 let summaryEl = null;
 let warnEl = null;
 let schoolEl = null;
+let popupEl = null;
 let items = [];
 let lastOverdue = '';
 let popupShown = false;
@@ -36,11 +37,12 @@ let chaoxing = {
   armedClear: false,
   background: false,
   timer: null,
+  popup: false,
 };
 
 export default {
   name: 'deadline-reminder',
-  inject: ['ui', 'storage', 'notify', 'secrets', 'net', 'clipboard', 'login', 'background'],
+  inject: ['ui', 'storage', 'notify', 'secrets', 'net', 'clipboard', 'login', 'background', 'permissions'],
   async apply(host) {
     ctx = host;
     rootEl = ctx.ui.root;
@@ -58,6 +60,7 @@ export default {
           <button id="dl-import" type="button">粘贴导入</button>
           <button id="dl-done" type="button">已完成</button>
         </div>
+        <div id="dl-popup" class="dl-popup"></div>
         <div id="dl-school" class="dl-school"></div>
         <div id="dl-list" class="dl-list"></div>
       </div>`;
@@ -66,6 +69,7 @@ export default {
     warnEl = rootEl.querySelector('#dl-warn');
     listEl = rootEl.querySelector('#dl-list');
     schoolEl = rootEl.querySelector('#dl-school');
+    popupEl = rootEl.querySelector('#dl-popup');
     ctx.effect(() => {
       const onAdd = () => openEditor(null);
       const onImport = () => openImport();
@@ -75,12 +79,14 @@ export default {
       rootEl.querySelector('#dl-done').addEventListener('click', onDone);
       listEl.addEventListener('click', onListClick);
       schoolEl.addEventListener('click', onSchoolClick);
+      popupEl.addEventListener('click', onPopupClick);
       return () => {
         rootEl.querySelector('#dl-add').removeEventListener('click', onAdd);
         rootEl.querySelector('#dl-import').removeEventListener('click', onImport);
         rootEl.querySelector('#dl-done').removeEventListener('click', onDone);
         listEl.removeEventListener('click', onListClick);
         schoolEl.removeEventListener('click', onSchoolClick);
+        popupEl.removeEventListener('click', onPopupClick);
       };
     });
 
@@ -104,6 +110,7 @@ export default {
     const storedKeys = await ctx.storage.get('notifiedKeys');
     if (Array.isArray(storedKeys)) scheduledKeys = storedKeys.map(String);
     await loadSchoolState();
+    await loadPopupState();
     if (chaoxing.background) {
       try {
         await ctx.background.keepAlive({
@@ -115,6 +122,7 @@ export default {
       startBackgroundTimer();
     }
     renderList();
+    renderPopup();
     renderSchool();
     await syncNotifications();
     maybePopup();
@@ -173,6 +181,62 @@ async function loadSchoolState() {
     chaoxing.background = !!(await ctx.storage.get('chaoxing.background'));
   } catch (_) {
     chaoxing.hasCookie = false;
+  }
+}
+
+async function loadPopupState() {
+  try {
+    chaoxing.popup = !!(await ctx.storage.get('chaoxing.popup'));
+    if (chaoxing.popup) {
+      const status = await ctx.permissions.status({ name: 'notification.popup' });
+      if (status && status.granted === false) {
+        chaoxing.popup = false;
+        await ctx.storage.set('chaoxing.popup', false);
+      }
+    }
+  } catch (_) {
+    chaoxing.popup = false;
+  }
+}
+
+function onPopupClick(event) {
+  const action = event.target.closest('[data-popup]')?.getAttribute('data-popup');
+  if (action === 'toggle') togglePopup();
+}
+
+function renderPopup() {
+  if (!popupEl) return;
+  popupEl.innerHTML = `
+    <div class="dl-popup-row">
+      <span class="dl-popup-title">弹窗通知</span>
+      <button class="dl-link" type="button" data-popup="toggle">${chaoxing.popup ? '关闭' : '开启'}</button>
+      <span class="dl-hint">到点用系统横幅弹出；首次开启会申请权限，可在拓展「权限」里关闭。</span>
+    </div>`;
+}
+
+async function togglePopup() {
+  if (chaoxing.popup) {
+    chaoxing.popup = false;
+    await ctx.storage.set('chaoxing.popup', false);
+    renderPopup();
+    await syncNotifications();
+    ctx.ui.toast('已改为普通通知');
+    return;
+  }
+  try {
+    const result = await ctx.permissions.request({ name: 'notification.popup' });
+    if (!result || result.granted !== true) {
+      ctx.ui.toast('没有开启弹窗通知权限');
+      return;
+    }
+    chaoxing.popup = true;
+    await ctx.storage.set('chaoxing.popup', true);
+    renderPopup();
+    await syncNotifications();
+    ctx.ui.toast('已开启弹窗通知');
+  } catch (e) {
+    const message = errText(e);
+    if (message) ctx.ui.toast(message);
   }
 }
 
@@ -1172,6 +1236,16 @@ async function syncNotifications() {
   }
   scheduledKeys = [];
   const now = Date.now();
+  if (chaoxing.popup) {
+    try {
+      const status = await ctx.permissions.status({ name: 'notification.popup' });
+      if (status && status.granted === false) {
+        chaoxing.popup = false;
+        await ctx.storage.set('chaoxing.popup', false);
+        renderPopup();
+      }
+    } catch (_) {}
+  }
   for (const item of items) {
     if (item.done || item.due <= now) continue;
     for (const offset of item.offsets || []) {
@@ -1184,6 +1258,7 @@ async function syncNotifications() {
           title: '还有 ' + offsetLabel(offset) + '：' + clip(item.title, 60),
           body: (item.course ? item.course + ' · ' : '') + '截止 ' + fmtDue(item.due),
           at,
+          popup: chaoxing.popup,
         });
         scheduledKeys.push(key);
       } catch (e) {

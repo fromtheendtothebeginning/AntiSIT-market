@@ -88,6 +88,23 @@
 
 .dl-tools button:active { background: var(--antisit-accent-soft, rgba(59, 130, 246, 0.1)); }
 
+/* ---------- 弹窗通知开关 ---------- */
+
+.dl-popup { margin: -8px 0 12px; }
+
+.dl-popup-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--antisit-border, #e3e3e8);
+  border-radius: 12px;
+  background: var(--antisit-card, #f7f7f9);
+}
+
+.dl-popup-title { font-size: 12px; font-weight: 600; }
+
 /* ---------- 学习通同步条 ---------- */
 
 .dl-school { margin: -4px 0 14px; }
