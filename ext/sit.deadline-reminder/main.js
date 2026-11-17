@@ -40,7 +40,7 @@ let chaoxing = {
 
 export default {
   name: 'deadline-reminder',
-  inject: ['ui', 'storage', 'notify', 'secrets', 'net', 'clipboard'],
+  inject: ['ui', 'storage', 'notify', 'secrets', 'net', 'clipboard', 'login', 'background'],
   async apply(host) {
     ctx = host;
     rootEl = ctx.ui.root;
@@ -187,8 +187,8 @@ function renderSchool() {
       </div>
       <div class="dl-school-actions">
         <button class="dl-school-btn" type="button" data-school="login">登录学习通</button>
-        <button class="dl-link" type="button" data-school="paste">从剪贴板导入</button>
-        <button class="dl-link" type="button" data-school="manual">手动粘贴</button>
+        <button class="dl-link dl-quiet-link" type="button" data-school="paste">从剪贴板导入</button>
+        <button class="dl-link dl-quiet-link" type="button" data-school="manual">手动粘贴</button>
       </div>`;
   } else {
     const when = chaoxing.lastSync ? agoText(chaoxing.lastSync) : '尚未同步';
