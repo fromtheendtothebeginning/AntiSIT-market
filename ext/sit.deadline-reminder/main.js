@@ -41,6 +41,7 @@ let chaoxing = {
   timer: null,
   popup: false,
   offsets: [1440, 180],
+  signedOut: false,
 };
 
 export default {
@@ -286,7 +287,9 @@ function renderSchool() {
     body = `
       <div class="dl-school-row">
         <span class="dl-school-title">学习通</span>
-        <span class="dl-hint">登录后自动同步作业与考试；也可以从剪贴板导入 Cookie。</span>
+        <span class="dl-hint">${chaoxing.signedOut
+          ? '已退出学习通账号。重新登录后才会继续同步作业与考试。'
+          : '登录后自动同步作业与考试；也可以从剪贴板导入 Cookie。'}</span>
       </div>
       <div class="dl-school-actions">
         <button class="dl-school-btn" type="button" data-school="login">登录学习通</button>
@@ -357,6 +360,11 @@ async function saveCookie(raw) {
 
 async function loginChaoxing() {
   try {
+    // 先清一遍 CookieStore：不然上次登录留下的会话还在，
+    // 登录页一打开就是已登录状态、直接跳成功页，看起来像「不用登录就自动登上了」。
+    try {
+      await ctx.login.clear({ cookieUrls: CX_COOKIE_URLS });
+    } catch (_) {}
     const result = await ctx.login.open({
       url: 'https://passport2.chaoxing.com/login?fid=&refer=http://i.chaoxing.com',
       cookieUrls: CX_COOKIE_URLS,
@@ -371,6 +379,7 @@ async function loginChaoxing() {
     }
     await ctx.secrets.set(CX_COOKIE_KEY, header);
     chaoxing.hasCookie = true;
+    chaoxing.signedOut = false;
     chaoxing.error = '';
     renderSchool();
     ctx.ui.toast('已登录学习通');
@@ -434,13 +443,18 @@ async function clearCookie() {
   try {
     await ctx.secrets.remove(CX_COOKIE_KEY);
   } catch (_) {}
-  // 关键：登录页与 WebView 共用同一个 CookieStore。只删本地加密凭据的话，
+  // 关键：登录页与所有 WebView 共用同一个 CookieStore。只删本地加密凭据的话，
   // 下次点「重新登录」打开的还是已登录状态，用户会以为「退出不了账号」。
+  let cookieOk = true;
   try {
-    await ctx.login.clear({ cookieUrls: CX_COOKIE_URLS });
-  } catch (_) {}
+    const result = await ctx.login.clear({ cookieUrls: CX_COOKIE_URLS });
+    cookieOk = !(result && result.ok === false);
+  } catch (_) {
+    cookieOk = false;
+  }
   items = items.filter((it) => it.source !== 'chaoxing');
   chaoxing.hasCookie = false;
+  chaoxing.signedOut = true;
   chaoxing.lastSync = 0;
   chaoxing.error = '';
   await ctx.storage.remove('chaoxing.lastSync');
@@ -448,7 +462,9 @@ async function clearCookie() {
   renderList();
   await syncNotifications();
   renderSchool();
-  ctx.ui.toast('已清除学习通 Cookie');
+  ctx.ui.toast(cookieOk
+    ? '已退出学习通账号'
+    : '已清除本机凭据，但浏览器 Cookie 没清干净：请到系统设置里清除 AntiSIT 的应用数据');
 }
 
 async function toggleBackground() {

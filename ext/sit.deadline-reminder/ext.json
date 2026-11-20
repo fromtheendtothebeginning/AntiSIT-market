@@ -7,7 +7,7 @@
   "icon": "line:event",
   "type": "bundle",
   "runtime": "cordis",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "main": "main.js",
   "style": "style.css",
   "permissions": ["storage", "notification", "network", "secrets", "clipboard", "login", "background"],
