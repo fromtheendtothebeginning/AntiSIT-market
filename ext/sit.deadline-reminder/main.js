@@ -445,12 +445,22 @@ async function clearCookie() {
   } catch (_) {}
   // 关键：登录页与所有 WebView 共用同一个 CookieStore。只删本地加密凭据的话，
   // 下次点「重新登录」打开的还是已登录状态，用户会以为「退出不了账号」。
+  //
+  // 这里还要**多清一遍**：Android 的 CookieManager.setCookie 是异步排队的，
+  // 刚下发完就打开登录页，可能读到的还是旧 Cookie。所以清完等一下、再清一次，
+  // 取最后一次的结果——否则用户点「登录」会看到「又是原来的账号」。
   let cookieOk = true;
-  try {
-    const result = await ctx.login.clear({ cookieUrls: CX_COOKIE_URLS });
-    cookieOk = !(result && result.ok === false);
-  } catch (_) {
-    cookieOk = false;
+  let scoped = true;
+  for (let i = 0; i < 2; i += 1) {
+    try {
+      const result = await ctx.login.clear({ cookieUrls: CX_COOKIE_URLS });
+      cookieOk = !(result && result.ok === false);
+      scoped = !(result && result.scoped === false);
+    } catch (_) {
+      cookieOk = false;
+    }
+    if (cookieOk) break;
+    await new Promise((r) => setTimeout(r, 300));
   }
   items = items.filter((it) => it.source !== 'chaoxing');
   chaoxing.hasCookie = false;
@@ -462,9 +472,13 @@ async function clearCookie() {
   renderList();
   await syncNotifications();
   renderSchool();
-  ctx.ui.toast(cookieOk
-    ? '已退出学习通账号'
-    : '已清除本机凭据，但浏览器 Cookie 没清干净：请到系统设置里清除 AntiSIT 的应用数据');
+  if (!cookieOk) {
+    ctx.ui.toast('已清除本机凭据，但浏览器 Cookie 没清干净：请到系统设置里清除 AntiSIT 的应用数据');
+  } else if (!scoped) {
+    ctx.ui.toast('已退出学习通账号（浏览器 Cookie 是一并清空整个存储的）');
+  } else {
+    ctx.ui.toast('已退出学习通账号');
+  }
 }
 
 async function toggleBackground() {
