@@ -7,12 +7,14 @@
  */
 
 const STORE_KEY = 'items.v1';
+const CX_OFFSETS_KEY = 'chaoxing.offsets';
 const DEFAULT_OFFSETS = [1440, 180];
 const OFFSET_CHOICES = [
   { m: 10080, label: '提前 1 周' },
   { m: 1440, label: '提前 1 天' },
   { m: 180, label: '提前 3 小时' },
   { m: 30, label: '提前 30 分钟' },
+  { m: 10, label: '提前 10 分钟' },
 ];
 const KIND_LABEL = { homework: '作业', exam: '考试', other: '其他' };
 
@@ -38,6 +40,7 @@ let chaoxing = {
   background: false,
   timer: null,
   popup: false,
+  offsets: [1440, 180],
 };
 
 export default {
@@ -79,8 +82,10 @@ export default {
       rootEl.querySelector('#dl-done').addEventListener('click', onDone);
       listEl.addEventListener('click', onListClick);
       schoolEl.addEventListener('click', onSchoolClick);
+      schoolEl.addEventListener('change', onSchoolChange);
       popupEl.addEventListener('click', onPopupClick);
       return () => {
+        schoolEl.removeEventListener('change', onSchoolChange);
         rootEl.querySelector('#dl-add').removeEventListener('click', onAdd);
         rootEl.querySelector('#dl-import').removeEventListener('click', onImport);
         rootEl.querySelector('#dl-done').removeEventListener('click', onDone);
@@ -161,6 +166,14 @@ const CX_HOST = 'https://mooc1.chaoxing.com';
 const CX_COURSE_URL = 'https://mooc1-api.chaoxing.com/mycourse/backclazzdata'
   + '?view=json&getTchClazzType=1&mcode=';
 const CX_EXAM_URL = 'https://mooc1-api.chaoxing.com/exam-ans/exam/test/examcode/examlist';
+const CX_COOKIE_URLS = [
+  'https://chaoxing.com',
+  'https://passport2.chaoxing.com',
+  'https://i.chaoxing.com',
+  'https://mooc1.chaoxing.com',
+  'https://mooc1-api.chaoxing.com',
+  'https://mooc2-ans.chaoxing.com',
+];
 
 function onSchoolClick(event) {
   const action = event.target.closest('[data-school]')?.getAttribute('data-school');
@@ -173,12 +186,38 @@ function onSchoolClick(event) {
   else if (action === 'clear') clearCookie();
 }
 
+async function onSchoolChange(event) {
+  const raw = event.target.getAttribute && event.target.getAttribute('data-school-offset');
+  if (raw == null) return;
+  const minutes = Number(raw);
+  if (!Number.isFinite(minutes) || minutes <= 0) return;
+  const set = new Set(chaoxing.offsets);
+  if (event.target.checked) set.add(minutes);
+  else set.delete(minutes);
+  chaoxing.offsets = [...set].sort((a, b) => b - a);
+  await ctx.storage.set(CX_OFFSETS_KEY, chaoxing.offsets);
+  // 用户改默认值就是想统一改：已同步进来的未完成条目一起换
+  for (const item of items) {
+    if (item.source === 'chaoxing' && !item.done) item.offsets = [...chaoxing.offsets];
+  }
+  await persist();
+  await syncNotifications();
+  ctx.ui.toast(chaoxing.offsets.length
+    ? '学习通默认提醒：' + chaoxing.offsets.map(offsetLabel).join(' / ')
+    : '已关闭学习通同步条目的提醒');
+}
+
 async function loadSchoolState() {
   try {
     const value = await ctx.secrets.get(CX_COOKIE_KEY);
     chaoxing.hasCookie = !!(value && value.trim());
     chaoxing.lastSync = Number(await ctx.storage.get('chaoxing.lastSync')) || 0;
     chaoxing.background = !!(await ctx.storage.get('chaoxing.background'));
+    const stored = await ctx.storage.get(CX_OFFSETS_KEY);
+    if (Array.isArray(stored)) {
+      const list = stored.map(Number).filter((n) => Number.isFinite(n) && n > 0);
+      if (list.length) chaoxing.offsets = list;
+    }
   } catch (_) {
     chaoxing.hasCookie = false;
   }
@@ -268,6 +307,17 @@ function renderSchool() {
         <button class="dl-link" type="button" data-school="paste">从剪贴板更新</button>
         <button class="dl-link dl-quiet-link" type="button" data-school="clear">${chaoxing.armedClear ? '再点一次清除' : '清除'}</button>
       </div>
+      <div class="dl-school-offsets">
+        <span class="dl-school-offset-title">默认提醒</span>
+        <div class="dl-offsets">
+          ${OFFSET_CHOICES.map((o) => `
+            <label class="dl-chip">
+              <input type="checkbox" data-school-offset="${o.m}"${chaoxing.offsets.includes(o.m) ? ' checked' : ''}>
+              <span>${o.label}</span>
+            </label>`).join('')}
+        </div>
+        <p class="dl-hint">同步进来的作业 / 考试按这里排提醒；改一次会同时更新已有的未完成条目。</p>
+      </div>
       <div class="dl-school-bg">
         <button class="dl-link" type="button" data-school="background">${chaoxing.background ? '关闭后台刷新' : '开启后台刷新'}</button>
         <span class="dl-hint">保持本页打开并退到后台，每 30 分钟同步；会显示常驻通知。</span>
@@ -309,14 +359,7 @@ async function loginChaoxing() {
   try {
     const result = await ctx.login.open({
       url: 'https://passport2.chaoxing.com/login?fid=&refer=http://i.chaoxing.com',
-      cookieUrls: [
-        'https://chaoxing.com',
-        'https://passport2.chaoxing.com',
-        'https://i.chaoxing.com',
-        'https://mooc1.chaoxing.com',
-        'https://mooc1-api.chaoxing.com',
-        'https://mooc2-ans.chaoxing.com',
-      ],
+      cookieUrls: CX_COOKIE_URLS,
       title: '连接学习通',
       successCookie: '_uid',
       successUrlPrefix: 'https://i.chaoxing.com',
@@ -390,6 +433,11 @@ async function clearCookie() {
   chaoxing.armedClear = false;
   try {
     await ctx.secrets.remove(CX_COOKIE_KEY);
+  } catch (_) {}
+  // 关键：登录页与 WebView 共用同一个 CookieStore。只删本地加密凭据的话，
+  // 下次点「重新登录」打开的还是已登录状态，用户会以为「退出不了账号」。
+  try {
+    await ctx.login.clear({ cookieUrls: CX_COOKIE_URLS });
   } catch (_) {}
   items = items.filter((it) => it.source !== 'chaoxing');
   chaoxing.hasCookie = false;
@@ -659,28 +707,53 @@ function parseCourseList(text) {
 function parseWorkList(html) {
   const doc = parseDoc(html);
   const out = [];
-  for (const li of doc.querySelectorAll('li')) {
-    const onclick = li.getAttribute('onclick') || '';
-    if (!onclick.includes('goTask') && !li.querySelector('[onclick*="goTask"]')) continue;
-    const data = li.getAttribute('data');
-    if (!data) continue;
-    let url = data.trim();
-    if (url.startsWith('/')) url = CX_HOST + url;
-    if (!url.includes('work/task')) continue;
+  const push = (rawUrl, title, status) => {
+    let url = String(rawUrl || '').trim();
+    if (!url || url === '#' || url.startsWith('javascript')) return;
+    if (url.startsWith('//')) url = 'https:' + url;
+    else if (url.startsWith('/')) url = CX_HOST + url;
+    if (!url.includes('work/task')) return;
+    if (out.some((it) => it.url === url)) return;
     out.push({
       url,
-      title: (li.querySelector('.overHidden2')?.textContent || '').trim(),
-      status: (li.querySelector('.status')?.textContent || '').trim(),
+      title: String(title || '').trim(),
+      status: String(status || '').trim(),
     });
+  };
+
+  // 结构一：<li onclick="goTask(...)" data="/work/task?...">（老版）
+  for (const li of doc.querySelectorAll('li')) {
+    const onclick = li.getAttribute('onclick') || '';
+    const inner = li.querySelector('[onclick*="goTask"]');
+    if (!onclick.includes('goTask') && !inner) continue;
+    push(
+      li.getAttribute('data') || inner?.getAttribute('data') || '',
+      li.querySelector('.overHidden2')?.textContent
+        || li.querySelector('.title')?.textContent,
+      li.querySelector('.status')?.textContent,
+    );
+  }
+
+  // 结构二：新版直接给 <a href="/work/task?…">标题</a>，状态在同一行的 .status 里
+  for (const a of doc.querySelectorAll('a[href*="work/task"]')) {
+    const row = a.closest('li,tr,div');
+    push(
+      a.getAttribute('href'),
+      a.textContent || a.getAttribute('title'),
+      row?.querySelector('.status, .state, .colorRed, .colorGreen')?.textContent,
+    );
   }
   return out;
 }
 
-const WORK_DONE = ['已完成', '已提交', '待批阅', '已批阅', '已批改'];
-const EXAM_DONE = /已完成|已提交|待批阅|已批阅|已批改|已交卷/;
+const WORK_DONE = ['已完成', '已提交', '待批阅', '已批阅', '已批改', '已交', '已过期', '已结束'];
+const EXAM_DONE = /已完成|已提交|待批阅|已批阅|已批改|已交卷|已结束/;
 
+/** 状态列为空时按「未完成」处理：宁可多显示一条，也别把真作业漏掉。 */
 function isWorkPending(status) {
-  return !WORK_DONE.some((mark) => String(status || '').includes(mark));
+  const text = String(status || '').trim();
+  if (!text) return true;
+  return !WORK_DONE.some((mark) => text.includes(mark));
 }
 
 function htmlText(html) {
@@ -691,32 +764,60 @@ function htmlText(html) {
 
 function parseWorkDeadline(html) {
   const text = htmlText(html);
-  let match = text.match(
-    /作答时间\s*[:：]\s*(\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2})\s*至\s*(\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2})/);
-  if (match) return nearestYear(match[2]);
-  match = text.match(
-    /(?:截止时间|作业截止|截止日期)\s*[:：]?\s*(\d{4}-\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2})/);
-  if (match) return fullDate(match[1]);
-  match = text.match(
-    /(?:截止时间|作业截止|截止日期)\s*[:：]?\s*(\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2})/);
-  if (match) return nearestYear(match[1]);
+  // 完整日期的几种写法（「截止时间：2026-11-20 23:59」「至 2026/11/20 23:59」）
+  const fulls = [
+    /(?:截止时间|作业截止|截止日期|结束时间|答题时限)\s*[:：]?\s*(\d{4}[-/.]\d{1,2}[-/.]\d{1,2}\s+\d{1,2}:\d{2})/,
+    /至\s*(\d{4}[-/.]\d{1,2}[-/.]\d{1,2}\s+\d{1,2}:\d{2})/,
+  ];
+  for (const re of fulls) {
+    const match = text.match(re);
+    if (!match) continue;
+    const value = fullDate(match[1].replace(/[/.]/g, '-'));
+    if (value) return value;
+  }
+  // 没有年份的写法（「截止时间 11-20 23:59」）
+  const short = [
+    /(?:截止时间|作业截止|截止日期|结束时间)\s*[:：]?\s*(\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2})/,
+    /至\s*(\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2})/,
+  ];
+  for (const re of short) {
+    const match = text.match(re);
+    if (!match) continue;
+    const value = nearestYear(match[1]);
+    if (value) return value;
+  }
   return 0;
 }
 
 function parseExamRows(html) {
   const doc = parseDoc(html);
   const out = [];
-  for (const tr of doc.querySelectorAll('tr.dataTr')) {
+  for (const tr of doc.querySelectorAll('tr.dataTr, tr[class*="dataTr"]')) {
     const cells = [...tr.querySelectorAll('td')]
       .map((td) => (td.textContent || '').replace(/\s+/g, ' ').trim());
-    if (cells.length < 8) continue;
-    const times = examTime(cells[2], cells[3]);
+    if (cells.length < 4) continue;
+    // 不同版本列序不同（名称有的在第 1 列、有的第 2 列），
+    // 所以按内容定位：第一个带完整日期的格子当时间列，第一个非空非纯数字当名称。
+    let timeIndex = -1;
+    for (let i = 0; i < cells.length; i += 1) {
+      if (/\d{4}[-/.]\d{1,2}[-/.]\d{1,2}/.test(cells[i])) {
+        timeIndex = i;
+        break;
+      }
+    }
+    if (timeIndex < 0) continue;
+    const name = cells.find((c, i) => i !== timeIndex && c && !/^\d+$/.test(c))
+      || '未命名考试';
+    const durationCell = cells.slice(timeIndex + 1)
+      .find((c) => /小时|分钟|^\d+$/.test(c)) || '';
+    const times = examTime(cells[timeIndex].replace(/[/.]/g, '-'), durationCell);
     if (!times) continue;
+    const statusText = cells.slice(timeIndex + 1).join(' ');
     out.push({
-      name: cells[1],
+      name,
       start: times[0],
       end: times[1],
-      done: EXAM_DONE.test(cells[5]),
+      done: EXAM_DONE.test(statusText),
     });
   }
   return out;
@@ -831,7 +932,7 @@ function mergeSynced(list) {
       kind: raw.kind === 'exam' ? 'exam' : 'homework',
       due,
       done: false,
-      offsets: [...DEFAULT_OFFSETS],
+      offsets: [...chaoxing.offsets],
       source: 'chaoxing',
       readonly: true,
       url: String(raw.url || ''),
@@ -1250,14 +1351,16 @@ async function syncNotifications() {
     if (item.done || item.due <= now) continue;
     for (const offset of item.offsets || []) {
       const at = item.due - offset * 60000;
-      if (at <= now + 30000) continue;
+      // 刚过提醒点不久也补一条（到点前一刻才打开 App 的情况）；再早就不打扰。
+      if (at <= now - 5 * 60000) continue;
       const key = 'dl:' + item.id + ':' + offset;
       try {
         await ctx.notify.schedule({
           key,
           title: '还有 ' + offsetLabel(offset) + '：' + clip(item.title, 60),
           body: (item.course ? item.course + ' · ' : '') + '截止 ' + fmtDue(item.due),
-          at,
+          // 接口只接受未来时间：已经过了提醒点就尽快补发
+          at: at > now + 30000 ? at : now + 30000,
           popup: chaoxing.popup,
         });
         scheduledKeys.push(key);

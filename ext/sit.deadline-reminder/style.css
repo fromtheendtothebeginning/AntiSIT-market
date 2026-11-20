@@ -148,6 +148,21 @@
   background: var(--antisit-card, #f7f7f9);
 }
 
+/* 学习通的默认提醒：和「后台刷新」同一张卡，上面一行，边框连起来 */
+.dl-school-offsets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--antisit-border, #e3e3e8);
+  border-top: 0;
+  background: var(--antisit-card, #f7f7f9);
+}
+
+.dl-school-offset-title { font-size: 13px; font-weight: 600; }
+
+.dl-school-offsets .dl-hint { margin: 0; }
+
 .dl-school-title { font-size: 13px; font-weight: 600; }
 
 .dl-school-text {
