@@ -86,6 +86,13 @@ void main() {
       expect(m.sensitivePermissions, ['storage']);
     });
 
+    test('files 是敏感权限：能写、会列进安装说明', () {
+      final m = parseOk(manifestJson(permissions: ['files']));
+      expect(m.permissions, ['files']);
+      expect(m.sensitivePermissions, ['files']);
+      expect(kPermissionLabels['files'], contains('系统文件选择器'));
+    });
+
     test('分类白名单', () {
       final raw = manifestJson()..['category'] = '游戏';
       expect(() => parseOk(raw), throwsA(isA<FormatException>()));
@@ -257,6 +264,19 @@ void main() {
 antiSIT.call("storage.get", {key: "n"});
 ''';
       expect(lintBundle(files({'app.js': src}), permissions: const ['storage']), isEmpty);
+    });
+
+    test('没声明 files 却用文件接口 → 拦下；声明了就放行', () {
+      const src =
+          'const { files } = await ctx.files.pick({ accept: ".txt" });';
+      expect(
+        lintBundle(files({'app.js': src}), permissions: const ['storage']).single,
+        contains('files'),
+      );
+      expect(lintBundle(files({'app.js': src}), permissions: const ['files']), isEmpty);
+
+      const raw = 'antiSIT.call("files.save", { name: "a.txt", text: "x" });';
+      expect(lintBundle(files({'app.js': raw}), permissions: const []), hasLength(1));
     });
 
     test('没声明 network 却引外链 → 拦下；声明了就放行', () {

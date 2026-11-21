@@ -1,6 +1,7 @@
-# 截止提醒 · sit.deadline-reminder
+# 学习通截止提醒 · sit.deadline-reminder
 
 按截止时间陈列**未完成**的作业与考试，并在到点前推送本地通知。
+（学院实验平台里的「大物实验报告」不在这里，另见 `sit.experiment-reminder` /「SIT大物实验提醒」。）
 
 ## 功能
 

@@ -4,18 +4,18 @@
   "extensions": [
     {
       "id": "sit.deadline-reminder",
-      "name": "截止提醒",
+      "name": "学习通截止提醒",
       "desc": "作业与考试截止时间一屏罗列，到点前推送提醒",
       "author": "AntiSIT",
       "category": "学习",
       "icon": "line:event",
       "type": "bundle",
       "runtime": "cordis",
-      "version": "1.4.2",
+      "version": "1.4.3",
       "homepage": "https://github.com/fromtheendtothebeginning/AntiSIT-market",
-      "zip": "dist/sit.deadline-reminder/1.4.2.zip",
-      "sha256": "ea819381e9259069ab3be1fe808440987a8dd3c42bfb547051aec822ba229565",
-      "size": 33612,
+      "zip": "dist/sit.deadline-reminder/1.4.3.zip",
+      "sha256": "9c7473c4a43c1a96a90bb08bad78c5f2ed190f3b46335d7599b8c1def77f1fe9",
+      "size": 33626,
       "permissions": [
         "storage",
         "notification",
@@ -26,6 +26,28 @@
         "background"
       ],
       "minAppVersion": "1.38.0"
+    },
+    {
+      "id": "sit.experiment-reminder",
+      "name": "SIT大物实验提醒",
+      "desc": "大物实验报告未提交一目了然，实验开始 / 截止时间与倒计时，到点前推送提醒",
+      "author": "AntiSIT",
+      "category": "学习",
+      "icon": "line:science",
+      "type": "bundle",
+      "runtime": "cordis",
+      "version": "1.0.0",
+      "homepage": "https://github.com/fromtheendtothebeginning/AntiSIT-market",
+      "zip": "dist/sit.experiment-reminder/1.0.0.zip",
+      "sha256": "437e1c6b4d9b87466d5f7f54d50d1bad6058b63e8ad28e79e9290d2d69091b1d",
+      "size": 28466,
+      "permissions": [
+        "storage",
+        "notification",
+        "secrets",
+        "campus_net"
+      ],
+      "minAppVersion": "1.44.0"
     },
     {
       "id": "sit.game-2048",

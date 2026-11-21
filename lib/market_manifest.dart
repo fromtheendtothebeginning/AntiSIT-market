@@ -14,15 +14,19 @@ library;
 /// * `clipboard` —— 读写剪贴板（读取时运行时再确认）
 /// * `login` —— 打开登录页并读取声明域名的 Cookie（打开前运行时再确认）
 /// * `background` —— 前台服务保活（常驻通知，开启前运行时再确认）
+/// * `files` —— 通过系统文件选择器读写用户选中的文件
+/// * `campus_net` —— 访问校内**明文 http** 站点（实验系统 / 报告系统这类内网地址）
 const Set<String> kSensitivePermissions = {
   'storage',
   'network',
+  'campus_net',
   'ai',
   'notification',
   'secrets',
   'clipboard',
   'login',
   'background',
+  'files',
 };
 
 /// 基础接口：只跟界面有关（读配色、弹提示、关页面、改自己的卡片），
@@ -276,12 +280,14 @@ class ExtManifest {
 const Map<String, String> kPermissionLabels = {
   'storage': '在本机保存数据（记设置、记历史）',
   'network': '运行时联网',
+  'campus_net': '访问校内明文 http 站点（实验系统 / 报告系统这类内网地址）',
   'ai': '调用 AI 对话（用你配置的模型与 API Key，可能产生费用）',
   'notification': '给你发通知（可定时提醒，App 没打开也能收到）',
   'secrets': '保存登录凭据 / Cookie（系统加密存储，按拓展隔离）',
   'clipboard': '读写剪贴板（读取时会再弹一次确认）',
   'login': '打开登录页并读取你声明域名的 Cookie（打开前会再弹一次确认）',
   'background': '在后台保持运行（显示常驻通知，开启前会再弹一次确认）',
+  'files': '读取 / 保存你选中的文件（只通过系统文件选择器，不会扫描本机文件）',
   'theme': '读取 App 配色（只读）',
   'toast': '弹一条 App 风格的提示',
   'close': '关闭自己的页面',

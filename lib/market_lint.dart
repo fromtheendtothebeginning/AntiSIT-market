@@ -1,6 +1,6 @@
 /// 投稿时会被拦下的东西（bundle 源码体检）。
 ///
-/// 这两条不是「风格建议」，是**在内置页里必然出问题**的写法：
+/// 这几条不是「风格建议」，是**在内置页里必然出问题**的写法：
 ///
 /// 1. `localStorage` / `sessionStorage` / `document.cookie` —— 拓展页是 App 用
 ///    `loadHtmlString` 塞进 WebView 的，来源是 **opaque origin**，读这些 API 直接
@@ -34,6 +34,11 @@ final List<RegExp> _remoteResourceRes = [
 /// 会走网络 API 的写法（禁网时必然失败）。
 final List<RegExp> _remoteApiRes = [
   RegExp(r'''\bfetch\s*\(|\bXMLHttpRequest\b|\bWebSocket\s*\(|\bEventSource\s*\(|navigator\.sendBeacon\s*\('''),
+];
+
+/// 文件接口：`ctx.files.*` 或裸通道 `antiSIT.call("files.*")`。
+final List<RegExp> _filesRes = [
+  RegExp(r'''\bctx\.files\b|\bantiSIT\.call\(\s*[\x27"]files\.'''),
 ];
 
 /// 存储 API：`localStorage.getItem(...)` / `localStorage[k]` / 以及「先赋给变量」这种
@@ -76,6 +81,11 @@ List<String> lintBundle(Map<String, List<int>> files, {required List<String> per
       problems.add('$path：用了 localStorage / sessionStorage / cookie —— 内置页是 opaque '
           'origin，这些 API 直接抛错或写不进去；存数据请用 antiSIT.call("storage.get"/'
           '"storage.set")，并在 ext.json 里声明 storage');
+    }
+
+    if (!permissions.contains('files') && _filesRes.any((re) => re.hasMatch(text))) {
+      problems.add('$path：用了文件接口（ctx.files / antiSIT.call("files.*")），但 ext.json '
+          '没声明 files —— 市场装的拓展会被 App 直接拒绝，请补上 files 权限');
     }
 
     if (allowNetwork) continue;

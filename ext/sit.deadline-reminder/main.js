@@ -1,4 +1,4 @@
-/*! 截止提醒 for AntiSIT — Cordis extension.
+/*! 学习通截止提醒 for AntiSIT — Cordis extension.
  *  Copyright (C) 2026 AntiSIT contributors
  *  SPDX-License-Identifier: GPL-3.0-only
  *
@@ -54,7 +54,7 @@ export default {
       <div class="dl">
         <header class="dl-head">
           <div class="dl-heading">
-            <h1>截止提醒</h1>
+            <h1>学习通截止提醒</h1>
             <p id="dl-summary">正在读取…</p>
           </div>
           <button id="dl-add" class="dl-primary" type="button">＋ 添加</button>
@@ -121,7 +121,7 @@ export default {
       try {
         await ctx.background.keepAlive({
           enabled: true,
-          title: '截止提醒',
+          title: '学习通截止提醒',
           text: '正在后台刷新学习通',
         });
       } catch (_) {}
@@ -496,7 +496,7 @@ async function toggleBackground() {
   try {
     await ctx.background.keepAlive({
       enabled: true,
-      title: '截止提醒',
+      title: '学习通截止提醒',
       text: '正在后台刷新学习通',
     });
     chaoxing.background = true;

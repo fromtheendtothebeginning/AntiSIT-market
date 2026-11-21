@@ -1,6 +1,6 @@
 # NOTICE
 
-**截止提醒（`sit.deadline-reminder`）**
+**学习通截止提醒（`sit.deadline-reminder`）**
 
 * 版权所有 (C) 2026 AntiSIT contributors
 * 许可：GNU General Public License v3.0 only（全文见同目录 `LICENSE`）

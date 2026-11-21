@@ -1,0 +1,16 @@
+{
+  "id": "sit.experiment-reminder",
+  "name": "SIT大物实验提醒",
+  "desc": "大物实验报告未提交一目了然，实验开始 / 截止时间与倒计时，到点前推送提醒",
+  "author": "AntiSIT",
+  "category": "学习",
+  "icon": "line:science",
+  "type": "bundle",
+  "runtime": "cordis",
+  "version": "1.0.0",
+  "main": "main.js",
+  "style": "style.css",
+  "permissions": ["storage", "notification", "secrets", "campus_net"],
+  "minAppVersion": "1.44.0",
+  "homepage": "https://github.com/fromtheendtothebeginning/AntiSIT-market"
+}
