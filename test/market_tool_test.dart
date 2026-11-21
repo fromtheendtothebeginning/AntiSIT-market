@@ -295,6 +295,34 @@ antiSIT.call("storage.get", {key: "n"});
           permissions: const ['network']), isEmpty);
     });
 
+    test('没声明 background 却用 ctx.background → 拦下；声明了就放行', () {
+      // 真实事故：「大物实验提醒」用 ctx.background.keepAlive 做后台刷新，清单里漏了
+      // background —— 手机上点「开启后台刷新」只会弹一条「没有声明…权限（background）」。
+      const src = 'await ctx.background.keepAlive({ enabled: true });';
+      final problems = lintBundle(files({'app.js': src}), permissions: const ['storage']);
+      expect(problems.single, contains('background'));
+      expect(problems.single, contains('没有声明'));
+      expect(lintBundle(files({'app.js': src}), permissions: const ['background']), isEmpty);
+    });
+
+    test('其它敏感服务也按同一张表查（notify → notification、裸通道前缀）', () {
+      expect(
+        lintBundle(files({'a.js': 'ctx.notify.schedule({key: "k", title: "t", at: 0});'}),
+                permissions: const ['storage'])
+            .single,
+        contains('notification'),
+      );
+      expect(
+        lintBundle(files({'a.js': 'antiSIT.call("secrets.get", {key: "k"});'}),
+                permissions: const ['storage'])
+            .single,
+        contains('secrets'),
+      );
+      // 注释里提一句不算（lint 会先剥掉注释）
+      const ok = '/* 以后可能要用 ctx.secrets */ ctx.notify.cancelAll();';
+      expect(lintBundle(files({'a.js': ok}), permissions: const ['notification']), isEmpty);
+    });
+
     test('普通超链接不算外链资源（点开由系统浏览器打开）', () {
       const html = '<a href="https://github.com/gabrielecirulli/2048">改编自上游</a>';
       expect(lintBundle(files({'index.html': html}), permissions: const []), isEmpty);

@@ -18,6 +18,8 @@ library;
 
 import 'dart:convert';
 
+import 'market_manifest.dart';
+
 /// 会被当代码检查的扩展名。
 const List<String> _codeExt = ['.html', '.htm', '.js', '.css', '.svg'];
 /// 资源型外链：`<script src>` / `<link href>` / `url(...)` / `@import`。
@@ -40,6 +42,26 @@ final List<RegExp> _remoteApiRes = [
 final List<RegExp> _filesRes = [
   RegExp(r'''\bctx\.files\b|\bantiSIT\.call\(\s*[\x27"]files\.'''),
 ];
+
+/// 也需要在清单里声明的服务 → 权限。这条表**对着 App 的权限门**查：
+/// 市场装的拓展调用表里没有的接口，App 会直接 reject（"没有声明…权限"），
+/// 插件只会静默少一块功能——「大物实验提醒」的「后台刷新」就这么坏过一次。
+final Map<String, String> _gatedServices = {
+  'background': 'background',
+  'secrets': 'secrets',
+  'notify': 'notification',
+  'login': 'login',
+  'clipboard': 'clipboard',
+  'ai': 'ai',
+};
+
+/// 权限对应的通道方法前缀（`notification` → `notify`，其余同名）。
+String _servicePrefix(String permission) =>
+    permission == 'notification' ? 'notify' : permission;
+
+/// 用到了 [service] 服务：`ctx.<service>.` 或裸通道 `antiSIT.call("<前缀>.`)。
+RegExp _serviceRes(String service, String prefix) => RegExp(
+    r'\bctx\.' + service + r'\b|\bantiSIT\.call\(\s*[\x27"]' + prefix + r'\.');
 
 /// 存储 API：`localStorage.getItem(...)` / `localStorage[k]` / 以及「先赋给变量」这种
 /// 裸引用（裸引用要求前面不是 `.`，免得把 `window.localStorage` 的说明文字也算上）。
@@ -86,6 +108,17 @@ List<String> lintBundle(Map<String, List<int>> files, {required List<String> per
     if (!permissions.contains('files') && _filesRes.any((re) => re.hasMatch(text))) {
       problems.add('$path：用了文件接口（ctx.files / antiSIT.call("files.*")），但 ext.json '
           '没声明 files —— 市场装的拓展会被 App 直接拒绝，请补上 files 权限');
+    }
+
+    // 其余敏感服务同理：没声明权限时 App 的权限门会直接把调用 reject 回网页，
+    // 插件多半只是「这一块没反应」（例如后台刷新按钮点了弹一条报错）。
+    for (final entry in _gatedServices.entries) {
+      final perm = entry.value;
+      if (permissions.contains(perm)) continue;
+      if (!_serviceRes(entry.key, _servicePrefix(perm)).hasMatch(text)) continue;
+      problems.add('$path：用了 ctx.${entry.key} 服务，但 ext.json 没声明 $perm —— '
+          '市场装的拓展调用它会被 App 拒绝（"没有声明「${kPermissionLabels[perm] ?? perm}」权限"），'
+          '这块功能在手机上直接不可用，请补上 $perm 权限');
     }
 
     if (allowNetwork) continue;

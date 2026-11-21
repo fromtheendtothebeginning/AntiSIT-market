@@ -40,7 +40,7 @@ App 内置公钥，**验签通过才认目录**，每个 zip 还要对得上目�
 | [`sit.game-2048`](ext/sit.game-2048) | 2048：滑动合数字、最高分存本机 | [gabrielecirulli/2048](https://github.com/gabrielecirulli/2048) · MIT |
 | [`sit.game-minesweeper`](ext/sit.game-minesweeper) | 扫雷：10×10 二十颗雷，标记模式 / 长按插旗，**不声明任何权限**（不存数据不联网） | [kubowania/minesweeper](https://github.com/kubowania/minesweeper) · MIT |
 | [`sit.deadline-reminder`](ext/sit.deadline-reminder) | **学习通截止提醒**：未完成作业 / 考试按截止时间陈列、到点前弹通知；可只读同步学习通 | 原创 · GPL-3.0-only |
-| [`sit.experiment-reminder`](ext/sit.experiment-reminder) | **SIT大物实验提醒**：学院实验平台里未提交的大物实验报告、开始 / 截止时间与倒计时，到点前弹通知（走 `campus_net` 校内明文 http） | 原创 · GPL-3.0-only |
+| [`sit.experiment-reminder`](ext/sit.experiment-reminder) | **SIT大物实验提醒**：学院实验平台里未提交的大物实验报告、开始 / 截止时间与倒计时，到点前弹通知；可选后台刷新（走 `campus_net` 校内明文 http + `background` 前台服务） | 原创 · GPL-3.0-only |
 
 两个游戏条目都是**改编版**：`ext/<id>/NOTICE.md` 写清了上游仓库、锁定的 commit 与改了哪几处
 （换掉 `localStorage`、去外链字体、手机版式、中文文案等），`LICENSE` 随包一起打进 zip

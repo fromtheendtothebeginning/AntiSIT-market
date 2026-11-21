@@ -5,7 +5,9 @@
 为了让插件能在没有证书的校内站点上工作，它使用了两项 App 提供的能力：
 
 * `ctx.net.campus`（App ≥ 1.44.0）：校内明文 http 通道，服务器模式下自动经校园隧道代理；
-* `ctx.secrets` / `ctx.notify`：加密凭据与系统通知。
+* `ctx.secrets` / `ctx.notify`：加密凭据与系统通知；
+* `ctx.background.keepAlive`（v1.0.1 起）：可选的「后台刷新」——前台服务 + 常驻通知，
+  让插件页退到后台后继续每 30 分钟同步一次；开启前 App 会再弹一次确认，随时可关。
 
 学校登录页把密码用 AES-128-ECB（固定口令，见页面 `BaseInfo/Login.js` 的 `Encrypt3`）
 处理后再做一次 base64，本拓展自带了一份最小的 AES-128-ECB 实现来完成这个变换；

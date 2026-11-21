@@ -36,16 +36,17 @@
       "icon": "line:science",
       "type": "bundle",
       "runtime": "cordis",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "homepage": "https://github.com/fromtheendtothebeginning/AntiSIT-market",
-      "zip": "dist/sit.experiment-reminder/1.0.0.zip",
-      "sha256": "437e1c6b4d9b87466d5f7f54d50d1bad6058b63e8ad28e79e9290d2d69091b1d",
-      "size": 28466,
+      "zip": "dist/sit.experiment-reminder/1.0.1.zip",
+      "sha256": "05a5bd86d7729991001feb3125e110ae1dc3dd3a8e722de14654fb5f513e9a4a",
+      "size": 28881,
       "permissions": [
         "storage",
         "notification",
         "secrets",
-        "campus_net"
+        "campus_net",
+        "background"
       ],
       "minAppVersion": "1.44.0"
     },

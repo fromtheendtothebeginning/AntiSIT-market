@@ -1082,6 +1082,12 @@ function errText(error) {
   if (!error) return '';
   const message = String(error.message || error);
   if (/用户没有允许/.test(message)) return '你没有允许这条访问授权';
+  // 权限门（ExtBridge）判的是清单里声明的权限：v1.0.0 漏了 background，
+  // 用户点「开启后台刷新」只会看到一句 Invalid argument(s)。升级到 1.0.1 后不会
+  // 再走到这里，但旧版本的报错至少要说人话。
+  if (/没有声明/.test(message)) {
+    return '这条功能需要的权限没写进拓展清单（多为旧版本），请到市场更新拓展后再试';
+  }
   if (/未知接口|net\.campus/.test(message)) {
     return 'App 版本太旧：需要 1.44.0 起的「校内明文 http」能力';
   }
